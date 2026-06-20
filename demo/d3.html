@@ -1,0 +1,125 @@
+<!doctype html><html lang="zh"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>帐房仪表盘 · 大农庄版面</title>
+<link rel="stylesheet" href="base.css">
+<style>
+.gauges{display:flex;gap:8px;margin-bottom:9px}
+.gauge{flex:1;background:var(--card);border:1px solid var(--line2);border-radius:11px;padding:8px 9px;box-shadow:var(--shadow)}
+.gauge .gl{font-size:11px;color:var(--mut)}
+.gauge .gv{font-size:16px;font-weight:700;margin-top:1px}
+.gauge .bar{height:5px;background:var(--card2);border-radius:3px;margin-top:6px;overflow:hidden}
+.gauge .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#e7c876)}
+.summ{background:var(--card);border:1px solid var(--line2);border-radius:10px;box-shadow:var(--shadow);
+  display:flex;justify-content:space-around;padding:9px 6px;margin-bottom:11px;font-size:13px}
+.summ div{text-align:center}.summ .k{font-size:11px;color:var(--mut)}.summ .v{font-size:16px;font-weight:700;margin-top:2px}
+
+.ledger{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line2);border-radius:11px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:14px}
+.ledger th{font-size:11px;color:var(--mut);font-weight:400;text-align:left;padding:6px 8px;background:var(--card2);border-bottom:1px solid var(--line)}
+.ledger th.c,.ledger td.c{text-align:center}
+.ledger td{padding:7px 8px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}
+.catrow td{background:var(--card2);font-weight:700;color:var(--accent);font-size:12.5px;padding:5px 9px;letter-spacing:.5px}
+.lname{display:flex;align-items:center;gap:8px}
+.lname img{width:30px;height:30px;object-fit:contain}
+.lname .n{font-weight:700;font-size:13.5px;line-height:1.1}.lname .c{font-size:10.5px;color:var(--mut)}
+.out{color:var(--good);font-weight:700;white-space:nowrap}
+.mst{display:inline-flex;align-items:center;border:1px solid var(--line2);border-radius:7px;overflow:hidden;background:var(--card)}
+.mst button{width:25px;height:26px;border:0;background:linear-gradient(180deg,var(--btn),var(--btn2));font-size:15px;cursor:pointer;font-family:inherit;line-height:1}
+.mst b{min-width:24px;text-align:center;font-size:14px}
+.chg{font-family:inherit;cursor:pointer;border:1px solid var(--line2);background:linear-gradient(180deg,var(--btn),var(--btn2));border-radius:7px;padding:5px 9px;font-size:12px;white-space:nowrap;color:var(--ink)}
+.croprow td{background:#f1e8d2;padding:8px 10px}
+.note{font-size:12px;color:var(--ink2);line-height:1.7;padding:0 4px 6px}
+
+/* 宅院 dashboard */
+.statgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:13px}
+.stile{background:var(--card);border:1px solid var(--line2);border-radius:11px;padding:9px;box-shadow:var(--shadow);text-align:center}
+.stile .k{font-size:11px;color:var(--mut)}.stile .v{font-size:18px;font-weight:700;margin-top:2px}.stile .v small{font-size:11px;color:var(--mut);font-weight:400}
+</style></head><body>
+
+<div id="nav"></div>
+<div class="phone">
+  <div id="hud"></div>
+  <main class="screen" id="screen"></main>
+  <div id="tabs"></div>
+</div>
+
+<script src="demo.js"></script>
+<script>
+document.getElementById('nav').innerHTML = demonavHTML(2);
+document.getElementById('hud').innerHTML = hudHTML();
+const RT = {}; ALL.forEach(it=>RT[it.id]={work:it.work, crop:it.crops[0]});
+let openCrop = null;
+
+function rows(){
+  let h='';
+  GROUPS.forEach(g=>{
+    h+=`<tr class="catrow"><td colspan="4">${g.name}</td></tr>`;
+    g.items.forEach(it=>{
+      const st=RT[it.id];
+      h+=`<tr>
+        <td><div class="lname"><img src="${ICON(it.icon)}"><div><div class="n">${it.name} <span class="stars" style="color:${tcol(it.tier)};font-size:9px">${stars(it.tier)}</span></div><div class="c">×${it.count} · Lv${it.lvl} · <span id="cr_${it.id}">${st.crop}</span></div></div></div></td>
+        <td class="c"><div class="mst"><button onclick="stepWork('${it.id}',-1)">−</button><b id="w_${it.id}">${st.work}</b><button onclick="stepWork('${it.id}',1)">＋</button></div></td>
+        <td class="c"><span class="out" id="o_${it.id}">${it.out}</span></td>
+        <td class="c"><button class="chg" onclick="toggleCrop('${it.id}')">改种 ▾</button></td>
+      </tr>`;
+      if(openCrop===it.id){
+        h+=`<tr class="croprow"><td colspan="4">
+          <div style="font-size:11px;color:var(--mut);margin-bottom:5px">改种(就地切换,不弹窗):</div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap">${it.crops.map(c=>`<div class="chip ${c===st.crop?'on':''}" onclick="setCrop('${it.id}','${c}')">${c}</div>`).join('')}</div>
+          <div style="font-size:11.5px;color:var(--ink2);margin-top:7px">${it.per}</div>
+        </td></tr>`;
+      }
+    });
+  });
+  return h;
+}
+function renderFarm(){
+  document.getElementById('screen').innerHTML = `
+    <div class="gauges">
+      <div class="gauge"><div class="gl">人丁</div><div class="gv">19/30</div><div class="bar"><i style="width:63%"></i></div></div>
+      <div class="gauge"><div class="gl">长工(空闲)</div><div class="gv">6 闲</div><div class="bar"><i style="width:42%"></i></div></div>
+      <div class="gauge"><div class="gl">存粮</div><div class="gv">1220 石</div><div class="bar"><i style="width:81%"></i></div></div>
+      <div class="gauge"><div class="gl">官面</div><div class="gv">22</div><div class="bar"><i style="width:44%"></i></div></div>
+    </div>
+    <div class="summ">
+      <div><div class="k">月收</div><div class="v good">+312</div></div>
+      <div><div class="k">月支</div><div class="v bad">−188</div></div>
+      <div><div class="k">净盈</div><div class="v gold">+124 两</div></div>
+      <div><div class="k">产业</div><div class="v">${ALL.length} 项</div></div>
+    </div>
+    <table class="ledger"><thead><tr>
+      <th>产业</th><th class="c">派工</th><th class="c">月产</th><th class="c">操作</th>
+    </tr></thead><tbody>${rows()}</tbody></table>
+    <div class="note">★ 这套主打<strong>免弹窗</strong>:派工直接在行里 +/-,改种就地展开切换。看数字、放置党最顺手,一屏掌握全部家业。</div>`;
+}
+function stepWork(id,d){const st=RT[id],it=ALL.find(i=>i.id===id);st.work=Math.max(0,Math.min(it.cap,st.work+d));
+  document.getElementById('w_'+id).textContent=st.work;floatAt(document.getElementById('w_'+id),d>0?'＋1':'−1');}
+function toggleCrop(id){openCrop=(openCrop===id?null:id);renderFarm();}
+function setCrop(id,c){RT[id].crop=c;openCrop=null;renderFarm();floatAt(document.getElementById('cr_'+id)||document.body,'改种「'+c+'」');}
+
+function renderHome(){
+  document.getElementById('screen').innerHTML = `
+    <div class="ghead">家业总览</div>
+    <div class="statgrid">
+      <div class="stile"><div class="k">家产</div><div class="v gold">19,045<small>两</small></div></div>
+      <div class="stile"><div class="k">田产</div><div class="v">9 / <small>上限</small>14</div></div>
+      <div class="stile"><div class="k">人丁</div><div class="v">19<small>/30</small></div></div>
+      <div class="stile"><div class="k">口粮</div><div class="v good">余裕</div></div>
+      <div class="stile"><div class="k">门第</div><div class="v">殷实</div></div>
+      <div class="stile"><div class="k">功名</div><div class="v">监生</div></div>
+    </div>
+    <div class="ghead">家族名册 · 第 1 代</div>
+    <table class="ledger"><thead><tr><th>称谓</th><th>姓名</th><th class="c">年齿</th><th>职事</th></tr></thead><tbody>
+      ${FAMILY.map(f=>`<tr>
+        <td><div class="lname"><img src="${ICON(f.icon)}"><div class="n">${f.role}</div></div></td>
+        <td>${f.name}</td><td class="c">${f.age}</td><td style="font-size:12px;color:var(--ink2)">${f.tag.split(' · ')[0]}</td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+function go(k){document.getElementById('tabs').innerHTML=tabbarHTML(k);bindTabs();
+  if(k==='home')renderHome();else if(k==='farm')renderFarm();
+  else document.getElementById('screen').innerHTML=stubHTML({town:'市集 · 场镇',city:'城镇 · 州府',set:'设置'}[k]||k,{town:'🏪',city:'🏯',set:'⚙'}[k]||'·','本套用同样的「帐册表格」呈现。');}
+function bindTabs(){document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>go(t.dataset.tab));}
+document.getElementById('tabs').innerHTML=tabbarHTML('farm');bindTabs();renderFarm();
+</script>
+</body></html>

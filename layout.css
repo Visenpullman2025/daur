@@ -1,0 +1,65 @@
+/* ============================================================
+   layout.css — 页面布局骨架(手机 H5 + PC 自适应)。
+   ★稳定层:一般别动。改玩法/配色去 style.css;这里只管"框架怎么摆"。
+
+   核心(根治 iOS 底栏漂移):
+   整个 #app = 钉满视口的纵向 flex 容器,只有中间 #main 内部滚动。
+   顶栏 #hud / 底栏 #tabbar 是 flex 项(非 position:fixed)→ 永远钉住、
+   绝不随正文滚动而滑走。不用 transform、不靠 JS 算高度。
+   ============================================================ */
+html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; overscroll-behavior: none; }
+body { touch-action: pan-y; -webkit-tap-highlight-color: transparent; }
+
+/* 应用外壳:钉满视口、纵向三段(顶栏 / 滚动正文 / 底栏) */
+#app {
+  position: fixed; inset: 0;
+  max-width: 560px; margin: 0 auto;
+  display: flex; flex-direction: column; min-height: 0;
+  overflow: hidden;
+}
+#hud     { flex: 0 0 auto; }                     /* 顶栏:固定高,不滚 */
+#buildbar{ position:absolute; left:0; right:0; z-index:25; }   /* 建造进度条:浮在 #main 顶部、不占流(否则一显示就挤小 #main → 场景图被压缩);top 由 renderBuildBar 设=顶栏高 */
+#main  { flex: 1 1 auto; min-height: 0;          /* 唯一滚动区 */
+         overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+#tabbar{ flex: 0 0 auto; }                       /* 底栏:永远贴底,不随内容滑动 */
+/* 二级条(当前页可建):手机=底栏上方一排,横向滑动;PC 在媒体查询里改成换行铺满 */
+#subbar{ flex: 0 0 auto; display: flex; gap: 6px; align-items: stretch;
+         padding: 7px 9px calc(7px + env(safe-area-inset-bottom)); overflow-x: auto; -webkit-overflow-scrolling: touch;
+         background: linear-gradient(0deg,#473522,#52402c); border-top: 1px solid var(--gold); }
+#subbar.empty{ display: none; }                  /* 非建造页(城镇/设置)无可建 → 不占行 */
+
+/* 浮层:覆盖整屏(在 #app 之上) */
+#modal { position: fixed; inset: 0; z-index: 60; }
+#toast { position: fixed; left: 0; right: 0; top: 64px; z-index: 70; pointer-events: none; }
+
+/* ============================================================
+   PC 自适应(宽屏 ≥820px 且鼠标):main.js 给 <body> 加 .layout-pc。
+   ★整屏沾满 + 整体放大 1.5×;菜单移到底部「两层」:
+   纵向 = 命脉条 / 进度条 / 宽正文(只此滚) / 二级条(当前页可建) / 主菜单(底)。
+   ============================================================ */
+@media (min-width: 820px) {
+  body.layout-pc #app {
+    max-width: none; width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+    grid-template-areas: "hud" "build" "main" "sub" "tabbar";
+  }
+  body.layout-pc #hud      { grid-area: hud; zoom: 1.3; }       /* 命脉条整体放大 */
+  body.layout-pc #buildbar { grid-area: build; }
+  body.layout-pc #main { grid-area: main; padding: 20px 34px 26px; }
+  /* 二级条:PC 改成换行铺满整宽(基础横滑样式在外层) */
+  body.layout-pc #subbar { grid-area: sub; flex-wrap: wrap; gap: 8px; padding: 10px 20px;
+    overflow-x: visible; overflow-y: auto; max-height: 30vh; }
+  /* 主菜单:底排横向、放大 */
+  body.layout-pc #tabbar {
+    grid-area: tabbar; flex-direction: row; gap: 6px;
+    padding: 8px 20px calc(8px + env(safe-area-inset-bottom));
+  }
+  body.layout-pc #tabbar button { font-size: 17px; padding: 8px 4px; }
+  body.layout-pc #tabbar button span { font-size: 26px; }
+  /* 宽内容区铺满:卡片多列 */
+  body.layout-pc .grow  { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  body.layout-pc .bgrid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+  body.layout-pc .screen { max-width: none; }
+}

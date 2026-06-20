@@ -1,0 +1,16 @@
+{
+  "name": "大农庄 · 卡片经营",
+  "short_name": "大农庄",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#e7d9bd",
+  "theme_color": "#5a4632",
+  "lang": "zh-CN",
+  "description": "1800 河南家族经营 · 卡片文字放置",
+  "icons": [
+    { "src": "assets/icon-192.webp", "sizes": "192x192", "type": "image/webp", "purpose": "any" },
+    { "src": "assets/icon-512.webp", "sizes": "512x512", "type": "image/webp", "purpose": "any" }
+  ]
+}

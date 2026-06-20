@@ -1,0 +1,106 @@
+<!doctype html><html lang="zh"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>线装精修 · 大农庄版面</title>
+<link rel="stylesheet" href="base.css">
+<style>
+.ghead{display:flex;align-items:center;gap:7px}
+.ghead::before{content:"❖";color:var(--gold);font-size:13px}
+.icard{background:var(--card);border:1px solid var(--line2);border-radius:13px;box-shadow:var(--shadow);margin-bottom:9px;overflow:hidden;border-left:4px solid var(--tier,var(--line))}
+.icard .top{display:flex;align-items:center;gap:11px;padding:10px 12px;cursor:pointer}
+.icard .top .thumb{width:50px;height:50px;flex:0 0 auto;border-radius:10px;background:radial-gradient(circle at 50% 38%,#fbf4e2,#e8d9ba);border:1px solid var(--line);display:flex;align-items:center;justify-content:center}
+.icard .top .thumb img{width:40px;height:40px;object-fit:contain}
+.icard .top .mid{flex:1;min-width:0}
+.icard .top .mid .nm{font-size:15.5px;font-weight:700;display:flex;align-items:center;gap:6px}
+.icard .top .mid .cr{font-size:12px;color:var(--ink2);margin-top:2px}
+.icard .top .rt{text-align:right;flex:0 0 auto}
+.icard .top .rt .ot{font-size:14px;color:var(--good);font-weight:700}
+.icard .top .rt .cnt{font-size:11px;color:var(--mut);margin-top:2px}
+.icard .top .rt .arr{font-size:12px;color:var(--gold);margin-top:2px;transition:transform .3s}
+.icard.open .top .rt .arr{transform:rotate(180deg)}
+.icard .panel{max-height:0;overflow:hidden;transition:max-height .32s ease}
+.icard.open .panel{max-height:400px}
+.icard .pbody{padding:12px 13px 14px;border-top:1px dashed var(--line);background:linear-gradient(180deg,#f1e8d2,var(--card2))}
+.obox{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 11px;font-size:12.5px;color:var(--ink2);margin-bottom:10px}
+.obox b{color:var(--good);font-size:14px}
+.row{display:flex;align-items:center;justify-content:space-between;margin:8px 0}
+.row .lab{font-size:14px;font-weight:700}
+.cropwrap{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}
+
+.zu{position:relative;border-radius:13px;overflow:hidden;border:1px solid var(--line2);box-shadow:var(--shadow);height:120px;background-size:cover;background-position:center 58%;margin-bottom:10px}
+.zu .v{position:absolute;inset:0;background:linear-gradient(180deg,rgba(40,30,16,.04),rgba(40,30,16,.5))}
+.zu .t{position:absolute;left:12px;bottom:10px;color:#f3e7cf}.zu .t b{font-size:17px;display:block}.zu .t span{font-size:11.5px;color:#e0cda3}
+.frow{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line2);border-radius:12px;box-shadow:var(--shadow);padding:9px 12px;margin-bottom:8px}
+.frow .th{width:46px;height:46px;border-radius:9px;background:radial-gradient(circle at 50% 38%,#fbf4e2,#e8d9ba);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.frow .th img{width:38px;height:38px;object-fit:contain}
+.frow .m .r{font-size:11px;color:var(--accent);font-weight:700}
+.frow .m .n{font-size:15px;font-weight:700}
+.frow .m .t{font-size:11.5px;color:var(--ink2);margin-top:1px}
+.frow .age{margin-left:auto;font-size:12px;color:var(--mut)}
+</style></head><body>
+
+<div id="nav"></div>
+<div class="phone">
+  <div id="hud"></div>
+  <main class="screen" id="screen"></main>
+  <div id="tabs"></div>
+</div>
+
+<script src="demo.js"></script>
+<script>
+document.getElementById('nav').innerHTML = demonavHTML(3);
+document.getElementById('hud').innerHTML = hudHTML();
+const RT = {}; ALL.forEach(it=>RT[it.id]={work:it.work, crop:it.crops[0]});
+
+function card(it){
+  const st=RT[it.id];
+  return `<div class="icard" id="ic_${it.id}" style="--tier:${tcol(it.tier)}">
+    <div class="top" onclick="toggle('${it.id}')">
+      <div class="thumb"><img src="${ICON(it.icon)}"></div>
+      <div class="mid"><div class="nm">${it.name} <span class="stars" style="color:${tcol(it.tier)};font-size:10px">${stars(it.tier)}</span></div>
+        <div class="cr">${it.crop} · ${TIERTXT[it.tier]}阶 Lv${it.lvl}</div></div>
+      <div class="rt"><div class="ot">${it.out}</div><div class="cnt">×${it.count}</div><div class="arr">▾</div></div>
+    </div>
+    <div class="panel"><div class="pbody">
+      <div class="obox">${it.per}<br>当前月产 <b>${it.out}</b></div>
+      <div class="row"><div class="lab">派工</div>
+        <div class="stepper"><button onclick="stepWork('${it.id}',-1)">−</button><b id="w_${it.id}">${st.work}</b><button onclick="stepWork('${it.id}',1)">＋</button></div></div>
+      <div class="muted" style="font-size:12px;margin:-3px 0 4px">占用长工 <b id="wt_${it.id}">${st.work}</b> / 上限 ${it.cap}(空闲 ${HUD.freeW})</div>
+      <div class="lab" style="margin-top:7px">改种 / 产出</div>
+      <div class="cropwrap">${it.crops.map(c=>`<div class="chip ${c===st.crop?'on':''}" onclick="setCrop('${it.id}','${c}',this)">${c}</div>`).join('')}</div>
+      <button class="btn gold" style="width:100%;margin-top:12px" onclick="addTool(this)">🔧 添置农具(+1 田产/工)</button>
+    </div></div>
+  </div>`;
+}
+function renderFarm(){
+  document.getElementById('screen').innerHTML =
+    GROUPS.map(g=>`<div class="ghead">${g.name.replace(/^[^ ]+ /,'')}</div>${g.items.map(card).join('')}`).join('') +
+    `<div style="font-size:12px;color:var(--ink2);line-height:1.7;padding:4px 4px 0">★ 跟现在最像:还是竖向卡片流+分区。差别——点卡片<strong>就地展开</strong>管理(不再跳整屏丑弹窗),并整体上了插画/边框/品级色。改动最小、最稳。</div>`;
+}
+function toggle(id){document.getElementById('ic_'+id).classList.toggle('open');}
+function stepWork(id,d){const st=RT[id],it=ALL.find(i=>i.id===id);st.work=Math.max(0,Math.min(it.cap,st.work+d));
+  document.getElementById('w_'+id).textContent=st.work;document.getElementById('wt_'+id).textContent=st.work;
+  floatAt(document.getElementById('w_'+id),d>0?'派工 ＋1':'撤工 −1');}
+function setCrop(id,c,el){RT[id].crop=c;[...el.parentNode.children].forEach(x=>x.classList.remove('on'));el.classList.add('on');floatAt(el,'改种「'+c+'」');}
+function addTool(el){floatAt(el,'+1 田产/工 ✓');}
+
+function renderHome(){
+  document.getElementById('screen').innerHTML = `
+    <div class="ghead">祖产</div>
+    <div class="zu" style="background-image:url('${MANOR(3)}')"><div class="v"></div>
+      <div class="t"><b>李宅 · 庄园府邸</b><span>宅邸 Lv3 · 人手上限 30 · 库容 1500 石</span></div></div>
+    <div class="ghead">李氏家族 · 第 1 代</div>
+    ${FAMILY.map(f=>`<div class="frow">
+      <div class="th"><img src="${ICON(f.icon)}"></div>
+      <div class="m"><div class="r">${f.role}</div><div class="n">${f.name}</div><div class="t">${f.tag}</div></div>
+      <div class="age">${f.age}岁</div></div>`).join('')}`;
+}
+function go(k){document.getElementById('tabs').innerHTML=tabbarHTML(k);bindTabs();
+  if(k==='home')renderHome();else if(k==='farm')renderFarm();
+  else document.getElementById('screen').innerHTML=stubHTML({town:'市集 · 场镇',city:'城镇 · 州府',set:'设置'}[k]||k,{town:'🏪',city:'🏯',set:'⚙'}[k]||'·','本套沿用现在的竖向卡片流,仅美化+就地展开。');}
+function bindTabs(){document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>go(t.dataset.tab));}
+document.getElementById('tabs').innerHTML=tabbarHTML('farm');bindTabs();renderFarm();
+// 默认展开第一张,直观看到「就地展开」效果
+setTimeout(()=>document.getElementById('ic_field')&&document.getElementById('ic_field').classList.add('open'),100);
+</script>
+</body></html>

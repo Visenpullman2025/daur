@@ -1,0 +1,175 @@
+/* ============================================================
+   uimotion.css — 界面/转场动效(UI motion)原型
+   纯 transform/opacity · 主题安全(不碰颜色变量) · 手机+PC
+   仅在 body.fx-uimotion 开启时生效;<300ms 雅致克制
+   配套 uimotion.js(猴补丁 setView + MutationObserver)
+   ============================================================ */
+
+/* ---- 缓动/时长变量(集中可调) ---- */
+body.fx-uimotion{
+  --fx-fast: 200ms;
+  --fx-mid: 260ms;
+  --fx-slow: 300ms;
+  --fx-ease: cubic-bezier(.22,.61,.36,1);        /* easeOutCubic-ish,快出慢收 */
+  --fx-spring: cubic-bezier(.34,1.42,.64,1);     /* 轻弹性回弹(弹窗/卡片) */
+  --fx-stag: 34ms;                               /* 卡片错落步长 */
+}
+
+/* ============================================================
+   ① 切页签:#main 内容淡入 + 轻微上滑转场
+   由 js 在 setView 后给 #main 加一次性 class .fx-view-in
+   ============================================================ */
+body.fx-uimotion #main.fx-view-in{
+  animation: fxViewIn var(--fx-mid) var(--fx-ease) both;
+}
+@keyframes fxViewIn{
+  from{ opacity:0; transform:translate3d(0,10px,0); }
+  to  { opacity:1; transform:none; }
+}
+
+/* ============================================================
+   ② 卡片进场错落渐显(stagger) + 静置极轻呼吸
+   js 给新出现的卡片打 .fx-stag-N(N=0..11 由进场顺序),
+   超过 12 个的卡片不延迟(立即进场,免长尾拖沓)。
+   呼吸:静置时几乎察觉不到的缩放,仅运转中(.live)的卡片。
+   ============================================================ */
+body.fx-uimotion .card.fx-in{
+  animation: fxCardIn var(--fx-mid) var(--fx-ease) both;
+}
+@keyframes fxCardIn{
+  from{ opacity:0; transform:translate3d(0,8px,0) scale(.97); }
+  to  { opacity:1; transform:none; }
+}
+/* 错落延迟(进场顺序) */
+body.fx-uimotion .card.fx-stag-0 { animation-delay: 0ms; }
+body.fx-uimotion .card.fx-stag-1 { animation-delay: calc(var(--fx-stag) * 1); }
+body.fx-uimotion .card.fx-stag-2 { animation-delay: calc(var(--fx-stag) * 2); }
+body.fx-uimotion .card.fx-stag-3 { animation-delay: calc(var(--fx-stag) * 3); }
+body.fx-uimotion .card.fx-stag-4 { animation-delay: calc(var(--fx-stag) * 4); }
+body.fx-uimotion .card.fx-stag-5 { animation-delay: calc(var(--fx-stag) * 5); }
+body.fx-uimotion .card.fx-stag-6 { animation-delay: calc(var(--fx-stag) * 6); }
+body.fx-uimotion .card.fx-stag-7 { animation-delay: calc(var(--fx-stag) * 7); }
+body.fx-uimotion .card.fx-stag-8 { animation-delay: calc(var(--fx-stag) * 8); }
+body.fx-uimotion .card.fx-stag-9 { animation-delay: calc(var(--fx-stag) * 9); }
+body.fx-uimotion .card.fx-stag-10{ animation-delay: calc(var(--fx-stag) * 10); }
+body.fx-uimotion .card.fx-stag-11{ animation-delay: calc(var(--fx-stag) * 11); }
+
+/* 静置呼吸:极轻(±0.6%),仅运转中卡片,慢节奏,不喧宾夺主 */
+body.fx-uimotion .card.live{
+  animation: fxBreathe 4.6s ease-in-out infinite;
+}
+@keyframes fxBreathe{
+  0%,100%{ transform: scale(1); }
+  50%    { transform: scale(1.006); }
+}
+/* 进场期间不呼吸(避免两个 animation 抢 transform),进场完由 js 接管加 .live 呼吸 */
+body.fx-uimotion .card.live.fx-in{ animation: fxCardIn var(--fx-mid) var(--fx-ease) both; }
+
+/* ============================================================
+   ③ 弹窗(#modal-box)弹性开场 + 背景遮罩淡入
+   js 在 #modal 由 hidden→显示时,给 #modal 加 .fx-modal-in 一拍
+   ============================================================ */
+body.fx-uimotion #modal.fx-modal-in{
+  animation: fxBackdropIn var(--fx-fast) ease both;
+}
+body.fx-uimotion #modal.fx-modal-in #modal-box{
+  animation: fxModalIn var(--fx-slow) var(--fx-spring) both;
+}
+@keyframes fxBackdropIn{
+  from{ opacity:0; }
+  to  { opacity:1; }
+}
+@keyframes fxModalIn{
+  from{ opacity:0; transform:translate3d(0,14px,0) scale(.94); }
+  60% { opacity:1; }
+  to  { opacity:1; transform:none; }
+}
+
+/* ============================================================
+   ④ 进度条宽度变化更顺滑(原本已有 .4s linear,这里换柔和缓动)
+   tierbar / bldfill / 各 fill。只改过渡曲线,不改宽度逻辑。
+   ============================================================ */
+body.fx-uimotion #tierbar,
+body.fx-uimotion .bldfill,
+body.fx-uimotion .cbar,
+body.fx-uimotion .fbarfill,
+body.fx-uimotion .fspanbar{
+  transition: width var(--fx-slow) var(--fx-ease) !important;
+}
+
+/* ============================================================
+   ⑤ 按钮按下 squash 回弹
+   覆盖各类按钮的 :active(原本多为 translateY(1px));
+   用 scale 轻挤压,松手由 transition 回弹(spring)。
+   注:用相对克制的 .96,避免位移触发误点。
+   ============================================================ */
+body.fx-uimotion .opt,
+body.fx-uimotion .sbtn,
+body.fx-uimotion .rbtn,
+body.fx-uimotion .ctag,
+body.fx-uimotion .wbtn,
+body.fx-uimotion .favbtn,
+body.fx-uimotion .subbtn,
+body.fx-uimotion .topt,
+body.fx-uimotion .bigbtn,
+body.fx-uimotion .closebtn,
+body.fx-uimotion .shopbtn,
+body.fx-uimotion .card .ops button,
+body.fx-uimotion .laborbox .lops button,
+body.fx-uimotion .lops button,
+body.fx-uimotion #tabbar button,
+body.fx-uimotion .speed button{
+  transition: transform var(--fx-fast) var(--fx-spring),
+              box-shadow var(--fx-fast) var(--fx-ease) !important;
+}
+body.fx-uimotion .opt:active,
+body.fx-uimotion .sbtn:active,
+body.fx-uimotion .rbtn:active,
+body.fx-uimotion .ctag:active,
+body.fx-uimotion .wbtn:active,
+body.fx-uimotion .favbtn:active,
+body.fx-uimotion .subbtn:active,
+body.fx-uimotion .topt:active,
+body.fx-uimotion .bigbtn:active,
+body.fx-uimotion .closebtn:active,
+body.fx-uimotion .shopbtn:active,
+body.fx-uimotion .card .ops button:active,
+body.fx-uimotion .laborbox .lops button:active,
+body.fx-uimotion .lops button:active,
+body.fx-uimotion #tabbar button:active,
+body.fx-uimotion .speed button:active{
+  transform: scale(.955) !important;   /* 挤压;松手 spring 回弹 */
+  transition-duration: 70ms !important;/* 按下要跟手(快) */
+}
+/* 已选中的页签按下也别跳走太多 */
+body.fx-uimotion #tabbar button.on:active{ transform: scale(.965) !important; }
+
+/* ============================================================
+   尊重 prefers-reduced-motion:全部关掉,只留瞬时显示
+   ============================================================ */
+@media (prefers-reduced-motion: reduce){
+  body.fx-uimotion #main.fx-view-in,
+  body.fx-uimotion .card.fx-in,
+  body.fx-uimotion .card.live,
+  body.fx-uimotion .card.live.fx-in,
+  body.fx-uimotion #modal.fx-modal-in,
+  body.fx-uimotion #modal.fx-modal-in #modal-box{
+    animation: none !important;
+  }
+  body.fx-uimotion .opt:active,
+  body.fx-uimotion .sbtn:active,
+  body.fx-uimotion .rbtn:active,
+  body.fx-uimotion .ctag:active,
+  body.fx-uimotion .wbtn:active,
+  body.fx-uimotion .favbtn:active,
+  body.fx-uimotion .subbtn:active,
+  body.fx-uimotion .topt:active,
+  body.fx-uimotion .bigbtn:active,
+  body.fx-uimotion .closebtn:active,
+  body.fx-uimotion .shopbtn:active,
+  body.fx-uimotion .card .ops button:active,
+  body.fx-uimotion .laborbox .lops button:active,
+  body.fx-uimotion .lops button:active,
+  body.fx-uimotion #tabbar button:active,
+  body.fx-uimotion .speed button:active{ transform: none !important; }
+}

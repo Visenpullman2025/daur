@@ -1,0 +1,317 @@
+<!doctype html><html lang="zh"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>庭院沙盘 · 大农庄版面</title>
+<link rel="stylesheet" href="base.css">
+<style>
+/* ===== 全屏大图舞台(可拖动/缩放) ===== */
+.screen.scene-mode{padding:0;overflow:hidden;position:relative}
+.viewport{position:absolute;inset:0;overflow:hidden;touch-action:none;cursor:grab;background:#cdbb92}
+.viewport:active{cursor:grabbing}
+.world{position:absolute;inset:0;transform-origin:0 0;background-size:cover;background-position:center 58%;will-change:transform}
+.world.cmbg{background:
+  repeating-linear-gradient(90deg,transparent 0 62px,rgba(243,235,214,.95) 62px 78px),
+  repeating-linear-gradient(0deg,transparent 0 54px,rgba(243,235,214,.95) 54px 70px),
+  linear-gradient(135deg,#d7c7a1,#cab78d)}
+.world.cmbg::after{content:'';position:absolute;left:-12%;top:56%;width:130%;height:30px;background:linear-gradient(180deg,#bcd0d2,#a7c1c7);transform:rotate(-7deg);opacity:.8;border-top:1px solid #94b1b7;border-bottom:1px solid #94b1b7}
+.ovl{position:absolute;inset:0;pointer-events:none;z-index:6}
+.ovl>*{pointer-events:auto}
+.cap{position:absolute;left:9px;top:8px;background:rgba(40,30,16,.58);color:#f3e7cf;font-size:12px;padding:3px 11px;border-radius:18px;border:1px solid rgba(255,235,190,.25)}
+.ph{position:absolute;right:9px;top:8px;background:rgba(140,58,44,.82);color:#fbeede;font-size:10px;padding:2px 9px;border-radius:12px;border:1px solid rgba(255,235,190,.25)}
+.zoomctl{position:absolute;right:9px;top:40px;display:flex;flex-direction:column;gap:6px}
+.zoomctl button{width:33px;height:33px;border-radius:9px;border:1px solid rgba(255,235,190,.35);background:rgba(40,30,16,.6);color:#f3e7cf;font-size:16px;cursor:pointer;font-family:inherit;line-height:1}
+.zoomctl button:active{transform:scale(.9)}
+.labelbar{position:absolute;left:0;right:0;bottom:8px;display:flex;gap:7px;padding:0 10px;overflow-x:auto;justify-content:center}
+.labelbar::-webkit-scrollbar{height:0}
+.lbl{font-family:inherit;cursor:pointer;background:rgba(40,30,16,.64);border:1px solid rgba(255,235,190,.32);color:#f3e7cf;border-radius:18px;padding:7px 14px;font-size:13px;white-space:nowrap;box-shadow:var(--shadow)}
+.lbl:active{transform:translateY(1px)}
+
+/* 热点(产业牌:数量+等级;不溢出) */
+.pin{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;cursor:pointer}
+.pin .plq{background:rgba(247,240,223,.96);border:1px solid var(--line2);border-radius:9px;padding:2px 7px 3px 4px;display:flex;align-items:center;gap:5px;box-shadow:var(--shadow)}
+.pin .plq img{width:25px;height:25px;object-fit:contain}
+.pin .pi{display:flex;flex-direction:column;line-height:1.18}
+.pin .pnm{font-size:11.5px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:4px;white-space:nowrap}
+.pin .pnm .cnt{font-size:9.5px;font-style:normal;color:#fff;background:var(--accent);border-radius:7px;padding:0 5px}
+.pin .psub{display:flex;gap:4px;white-space:nowrap;align-items:center}
+.pin .psub .lv{font-size:9px;font-style:normal;color:#3c2e12;background:linear-gradient(180deg,#e7c876,var(--gold));border-radius:6px;padding:0 4px}
+.pin .psub .out{font-size:10px;font-style:normal;color:var(--good);font-weight:700}
+.pin .stem{width:2px;height:8px;background:rgba(140,58,44,.7)}
+.pin .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 0 0 0 rgba(140,58,44,.5);animation:pulse 1.8s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(140,58,44,.5)}70%{box-shadow:0 0 0 8px rgba(140,58,44,0)}100%{box-shadow:0 0 0 0 rgba(140,58,44,0)}}
+.cmark{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
+.cmark .ic{width:36px;height:36px;border-radius:50%;background:rgba(247,240,223,.96);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow)}
+.cmark .ic img{width:23px;height:23px;object-fit:contain}
+.cmark .cl{font-size:10px;color:var(--ink);background:rgba(247,240,223,.85);padding:0 6px;border-radius:7px;white-space:nowrap}
+
+/* 宅邸等级切换器 */
+.lvctl{position:absolute;left:50%;bottom:47px;transform:translateX(-50%);display:flex;align-items:center;gap:9px;background:rgba(40,30,16,.6);border:1px solid rgba(255,235,190,.3);border-radius:22px;padding:3px 5px}
+.lvctl button{width:28px;height:28px;border-radius:50%;border:1px solid rgba(255,235,190,.4);background:rgba(247,240,223,.92);color:var(--ink);font-size:12px;cursor:pointer;font-family:inherit;line-height:1}
+.lvctl button:disabled{opacity:.35;cursor:default}
+.lvctl .lvtxt{color:#f3e7cf;font-size:13px;font-weight:700;display:flex;flex-direction:column;align-items:center;line-height:1.15;min-width:100px;text-align:center}
+.lvctl .lvtxt span{font-size:10.5px;color:#e8d7b3;font-weight:400}
+
+/* 数字徽标 */
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 9px}
+.ci{display:flex;align-items:center;gap:3px;background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:3px 9px;font-size:12.5px;color:var(--ink)}
+.ci img{width:14px;height:14px;object-fit:contain}
+.ci b{color:var(--good);font-weight:700}
+.fstrip{display:flex;gap:8px;flex-wrap:wrap}
+.fcard{flex:0 0 auto;width:92px;background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:9px 6px;text-align:center;box-shadow:var(--shadow)}
+.fcard img{width:42px;height:42px;object-fit:contain}
+.fcard .r{font-size:11px;color:var(--accent);font-weight:700;margin-top:2px}
+.fcard .n{font-size:13px}.fcard .a{font-size:11px;color:var(--mut)}
+
+/* 底部滑出面板 */
+.sheetbg{position:absolute;inset:0;background:rgba(30,20,8,.42);opacity:0;pointer-events:none;transition:.25s;z-index:20}
+.sheetbg.on{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:21;
+  background:repeating-linear-gradient(45deg,rgba(0,0,0,.012) 0 2px,transparent 2px 5px),var(--card);
+  border-radius:18px 18px 0 0;border-top:2px solid var(--gold);box-shadow:0 -10px 30px rgba(0,0,0,.32);
+  padding:8px 15px calc(18px + env(safe-area-inset-bottom));transform:translateY(115%);
+  transition:transform .3s cubic-bezier(.2,.85,.2,1);max-height:84%;overflow:auto}
+.sheet.on{transform:translateY(0)}
+.sheet .grip{width:42px;height:4px;border-radius:3px;background:var(--line2);margin:3px auto 11px}
+.sheet .sh{display:flex;align-items:center;gap:11px;margin-bottom:9px}
+.sheet .sh img{width:50px;height:50px;object-fit:cover;background:radial-gradient(circle,rgba(255,255,255,.6),transparent 70%);border-radius:10px}
+.sheet .sh .nm{font-size:18px;font-weight:700}
+.sheet .sh .x{margin-left:auto;font-size:22px;color:var(--mut);cursor:pointer;padding:0 6px}
+.sheet .sub{font-size:12px;color:var(--ink2);margin-top:2px}
+.sh .subtags{display:flex;gap:5px;margin-top:3px}
+.sh .subtags .tg{font-style:normal;font-size:10.5px;padding:1px 7px;border-radius:8px;background:var(--card2);border:1px solid var(--line);color:var(--ink2)}
+.sh .subtags .tg.cnt{background:var(--accent);color:#fff;border-color:transparent}
+.sh .subtags .tg.lv{background:linear-gradient(180deg,#e7c876,var(--gold));color:#3c2e12;border-color:transparent;font-weight:700}
+.obox{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 11px;font-size:12.5px;color:var(--ink2);margin-bottom:10px;line-height:1.7}
+.obox b{color:var(--good);font-size:14px}
+.row{display:flex;align-items:center;justify-content:space-between;margin:9px 0}
+.row .lab{font-size:14px;font-weight:700;display:flex;align-items:center;gap:5px}
+.lab{font-size:14px;font-weight:700}
+.cropwrap{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}
+.arow{display:flex;align-items:center;gap:9px;padding:6px 2px;border-bottom:1px dashed var(--line)}
+.arow:last-child{border-bottom:0}
+.arow .ce{font-size:19px;width:24px;text-align:center}
+.arow .cn{font-size:14px;font-weight:700;flex:1}
+.arow .mu{font-size:11px;color:var(--mut);width:14px}
+.stepper.sm button{width:31px;height:28px;font-size:16px}
+.stepper.sm b{min-width:40px;font-size:14px}
+.bgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+.bcard{background:var(--card2);border:1px solid var(--line2);border-radius:11px;padding:9px 6px;text-align:center;cursor:pointer;box-shadow:var(--shadow)}
+.bcard img{width:40px;height:40px;object-fit:contain}
+.bcard .bn{font-size:13px;font-weight:700;margin-top:1px}
+.bcard .bs{font-size:10.5px;color:var(--ink2)}
+.bcard .bc{font-size:10.5px;color:var(--mut);margin-top:2px}
+.bcard .bbtn{font-size:11px;color:var(--gold);margin-top:4px;font-weight:700}
+.bcard:active{transform:scale(.97)}
+.ilrow{display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px dashed var(--line);cursor:pointer}
+.ilrow:active{background:var(--card2)}
+.ilrow img{width:30px;height:30px;object-fit:contain}
+.ilrow .iln{font-size:14px;font-weight:700}
+.ilrow .tg{font-style:normal;font-size:10px;padding:1px 6px;border-radius:7px}
+.ilrow .tg.cnt{background:var(--accent);color:#fff}
+.ilrow .tg.lv{background:linear-gradient(180deg,#e7c876,var(--gold));color:#3c2e12;font-weight:700}
+.ilrow .ilo{margin-left:auto;color:var(--good);font-weight:700;font-size:13px}
+.ilrow .ilg{color:var(--gold);font-size:16px}
+</style></head><body>
+
+<div id="nav"></div>
+<div class="phone">
+  <div id="hud"></div>
+  <main class="screen" id="screen"></main>
+  <div id="tabs"></div>
+  <div class="sheetbg" id="sheetbg" onclick="closeSheet()"></div>
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<script src="demo.js"></script>
+<script>
+document.getElementById('nav').innerHTML = demonavHTML(0);
+document.getElementById('hud').innerHTML = hudHTML();
+
+const RT = {}; ALL.forEach(it=>RT[it.id]={work:it.work, crop:it.crops[0]});
+const FIELD = { field:{area:30,alloc:{'麦':18,'菽':12}}, paddy:{area:20,alloc:{'稻':20}} };
+const isField = id => id in FIELD;
+let manorLevel = 3;
+const CROP_EMO = {'麦':'🌾','菽':'🫘','茶':'🍵','棉':'🧶','桑':'🍃','稻':'🌾','菱角':'🍈',
+  '铁':'⚒️','煤':'🪨','黏土':'🧱','杉':'🌲','松':'🌲','竹':'🎋','羊':'🐑','牛':'🐂','马':'🐎',
+  '青砖':'🧱','瓦':'🟫','农具':'🔧','刀具':'🗡️','鸡':'🐔','鸭':'🦆','鹅':'🦢'};
+const shortOut = it => it.out.replace(/\s/g,'').replace('/月','').replace('/年','');
+
+/* ===== 全屏舞台 + 拖动/缩放 ===== */
+function sceneScreen(o){
+  const scr=document.getElementById('screen'); scr.className='screen scene-mode';
+  const bgStyle = o.bg ? `style="background-image:linear-gradient(180deg,rgba(40,30,16,.03),rgba(40,30,16,.22)),url('${o.bg}')"` : '';
+  scr.innerHTML = `
+    <div class="viewport" id="vp"><div class="world ${o.worldClass||''}" id="world" ${bgStyle}>${o.hotspots||''}</div></div>
+    <div class="ovl">
+      <div class="cap">${o.cap}</div>${o.ph?`<div class="ph">${o.ph}</div>`:''}
+      <div class="zoomctl"><button onclick="zoomBtn(1)">＋</button><button onclick="zoomBtn(-1)">−</button><button onclick="zoomBtn('reset')">⊙</button></div>
+      ${o.lvctl||''}
+      <div class="labelbar">${o.labels||''}</div>
+    </div>`;
+  attachPanZoom();
+}
+function attachPanZoom(){
+  const vp=document.getElementById('vp'), world=document.getElementById('world'); if(!vp) return;
+  let z=1,tx=0,ty=0; const MIN=1,MAX=2.8;
+  const pts=new Map(); let startDist=0,startZ=1,downX=0,downY=0,moved=false;
+  function apply(){
+    const w=vp.clientWidth,h=vp.clientHeight;
+    tx=Math.min(0,Math.max(w-w*z,tx)); ty=Math.min(0,Math.max(h-h*z,ty));
+    world.style.transform=`translate(${tx}px,${ty}px) scale(${z})`;
+  }
+  function zoomAt(cx,cy,nz){ nz=Math.min(MAX,Math.max(MIN,nz));
+    const wx=(cx-tx)/z, wy=(cy-ty)/z; z=nz; tx=cx-wx*z; ty=cy-wy*z; apply(); }
+  vp.onpointerdown=e=>{ try{vp.setPointerCapture(e.pointerId);}catch(_){} pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    moved=false; downX=e.clientX; downY=e.clientY;
+    if(pts.size===2){const a=[...pts.values()];startDist=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);startZ=z;} };
+  vp.onpointermove=e=>{ if(!pts.has(e.pointerId))return; const prev=pts.get(e.pointerId); pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(pts.size===2){const a=[...pts.values()];const d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);
+      const r=vp.getBoundingClientRect(); zoomAt((a[0].x+a[1].x)/2-r.left,(a[0].y+a[1].y)/2-r.top, startZ*(d/startDist)); moved=true; return;}
+    tx+=e.clientX-prev.x; ty+=e.clientY-prev.y; if(Math.abs(e.clientX-downX)+Math.abs(e.clientY-downY)>6) moved=true; apply(); };
+  const up=e=>pts.delete(e.pointerId); vp.onpointerup=up; vp.onpointercancel=up;
+  vp.onwheel=e=>{e.preventDefault();const r=vp.getBoundingClientRect();zoomAt(e.clientX-r.left,e.clientY-r.top,z*(e.deltaY<0?1.15:0.87));};
+  vp.addEventListener('click',e=>{ if(moved){e.stopPropagation();e.preventDefault();} },true);
+  vp._zoom=d=>{const r=vp.getBoundingClientRect();zoomAt(r.width/2,r.height/2, d==='reset'?1:z*(d>0?1.3:0.77));};
+  apply();
+}
+function zoomBtn(d){const vp=document.getElementById('vp'); if(vp&&vp._zoom) vp._zoom(d);}
+
+/* ===== 宅院 ===== */
+const HOME_PINS=[
+  {icon:'house',  nm:'正堂', ot:'家主起居',     x:50,y:60},
+  {icon:'shrine', nm:'祠堂', ot:'供奉先祖',     x:80,y:72},
+  {icon:'academy',nm:'家塾', ot:'子弟读书',     x:22,y:68},
+  {icon:'granary',nm:'仓廪', ot:'存粮 1220 石', x:50,y:88},
+];
+function renderHome(){
+  const m=MANOR_LV[manorLevel];
+  const hs=HOME_PINS.map(p=>`<div class="pin" style="left:${p.x}%;top:${p.y}%" onclick="pinInfo('${p.nm}','${p.ot}')">
+    <div class="plq mini"><img src="${ICON(p.icon)}"><div class="pi"><div class="pnm">${p.nm}</div></div></div>
+    <div class="stem"></div><div class="dot"></div></div>`).join('');
+  const lv=`<div class="lvctl"><button onclick="chLevel(-1)" ${manorLevel===0?'disabled':''}>◀</button>
+    <div class="lvtxt">宅邸 Lv${manorLevel}<span>${m.n}</span></div>
+    <button onclick="chLevel(1)" ${manorLevel===6?'disabled':''}>▶</button></div>`;
+  const labels=`<button class="lbl" onclick="openFamily()">👪 家族</button>
+    <button class="lbl" onclick="openManor()">🏛 大宅</button>
+    <button class="lbl" onclick="openBuild()">🏗 营造</button>`;
+  sceneScreen({bg:MANOR(manorLevel), cap:`李宅 · ${m.n}`, hotspots:hs, lvctl:lv, labels});
+}
+function chLevel(d){ manorLevel=Math.max(0,Math.min(6,manorLevel+d)); renderHome(); }
+function openFamily(){ setSheet(`<div class="grip"></div>
+  <div class="sh"><div><div class="nm">👪 李氏家族 · 第 1 代</div><div class="sub">${FAMILY.length} 口</div></div><div class="x" onclick="closeSheet()">✕</div></div>
+  <div class="fstrip">${FAMILY.map(f=>`<div class="fcard"><img src="${ICON(f.icon)}"><div class="r">${f.role}</div><div class="n">${f.name}</div><div class="a">${f.age}岁</div></div>`).join('')}</div>`); }
+function openManor(){ const m=MANOR_LV[manorLevel];
+  setSheet(`<div class="grip"></div>
+    <div class="sh"><img src="${MANOR(manorLevel)}"><div><div class="nm">${m.n}</div><div class="sub">宅邸 Lv${manorLevel}</div></div><div class="x" onclick="closeSheet()">✕</div></div>
+    <div class="chips"><div class="ci"><img src="${ICON('hud_labor')}">${m.workCap}</div><div class="ci"><img src="${ICON('hud_grain')}">${m.store}</div><div class="ci"><img src="${ICON('hud_favor')}">门第 +${m.prestige}</div></div>
+    ${manorLevel<6?`<button class="btn gold" style="width:100%" onclick="chLevel(1);closeSheet()">⬆ 升级到 ${MANOR_LV[manorLevel+1].n}</button>`:'<div class="muted" style="text-align:center;padding:6px">已是顶级府邸</div>'}`); }
+
+/* ===== 产业 ===== */
+const FARM_PINS=[{ref:'field',x:30,y:48},{ref:'paddy',x:55,y:72},{ref:'forest',x:21,y:30},{ref:'barn',x:70,y:46},{ref:'mine',x:78,y:30},{ref:'brickkiln',x:50,y:58}];
+function pinHTML(it,x,y){ const cnt=isField(it.id)?FIELD[it.id].area+'亩':'×'+it.count;
+  return `<div class="pin" style="left:${x}%;top:${y}%" onclick="openInd('${it.id}')">
+    <div class="plq"><img src="${ICON(it.icon)}"><div class="pi"><div class="pnm">${it.name}<i class="cnt">${cnt}</i></div>
+    <div class="psub"><i class="lv">Lv${it.lvl}</i><i class="out">${shortOut(it)}</i></div></div></div>
+    <div class="stem"></div><div class="dot"></div></div>`; }
+function renderFarm(){
+  const hs=FARM_PINS.map(p=>pinHTML(ALL.find(i=>i.id===p.ref),p.x,p.y)).join('');
+  const labels=`<button class="lbl" onclick="openIndList()">📋 产业 ${ALL.length}</button>
+    <button class="lbl" onclick="openBuild()">🏗 营造</button>
+    <button class="lbl" onclick="openMonth()">📅 月结</button>`;
+  sceneScreen({bg:'../assets/cover-bg.webp', cap:'田庄全景', hotspots:hs, labels});
+}
+function openIndList(){
+  const rows=GROUPS.map(g=>`<div class="lab" style="margin-top:8px">${g.name}</div>`+g.items.map(it=>`
+    <div class="ilrow" onclick="openInd('${it.id}')"><img src="${ICON(it.icon)}"><span class="iln">${it.name}</span>
+      <i class="tg cnt">${isField(it.id)?FIELD[it.id].area+'亩':'×'+it.count}</i><i class="tg lv">Lv${it.lvl}</i>
+      <span class="ilo">${shortOut(it)}</span><span class="ilg">›</span></div>`).join('')).join('');
+  setSheet(`<div class="grip"></div>
+    <div class="sh"><div><div class="nm">📋 产业一览</div><div class="sub">${ALL.length} 项 · 点开管理</div></div><div class="x" onclick="closeSheet()">✕</div></div>${rows}`);
+}
+function openMonth(){ setSheet(`<div class="grip"></div>
+  <div class="sh"><div><div class="nm">📅 本月结算</div><div class="sub">第12年 · 夏</div></div><div class="x" onclick="closeSheet()">✕</div></div>
+  <div class="chips"><div class="ci"><img src="${ICON('hud_grain')}"><b>+38石</b></div><div class="ci"><img src="${ICON('g_iron')}"><b>+11斤</b></div><div class="ci"><img src="${ICON('g_brick')}"><b>+9块</b></div></div>
+  <div class="obox">收 +312 · 支 −188 · <b>净 +124 两</b></div>`); }
+
+function openInd(id){
+  const it=ALL.find(i=>i.id===id), st=RT[id];
+  let b=`<div class="grip"></div>
+    <div class="sh"><img src="${ICON(it.icon)}" style="object-fit:contain">
+      <div><div class="nm">${it.name} <span class="stars" style="color:${tcol(it.tier)}">${stars(it.tier)}</span></div>
+        <div class="subtags"><i class="tg cnt">${isField(id)?FIELD[id].area+'亩':'×'+it.count}</i><i class="tg lv">Lv${it.lvl}</i><i class="tg">${TIERTXT[it.tier]}阶</i></div></div>
+      <div class="x" onclick="closeSheet()">✕</div></div>
+    <div class="chips">
+      <div class="ci"><img src="${ICON('hud_labor')}"><span id="wc_${id}">${st.work}/${it.cap}</span></div>
+      <div class="ci"><img src="${ICON('hud_grain')}"><b>${shortOut(it)}</b></div>
+      ${isField(id)?`<div class="ci"><img src="${ICON('hud_silver')}"><b>+4.8</b></div>`:''}
+    </div>
+    <div class="row"><div class="lab"><img src="${ICON('hud_labor')}" style="width:17px">派工</div>
+      <div class="stepper"><button onclick="stepWork('${id}',-1)">−</button><b id="w_${id}">${st.work}</b><button onclick="stepWork('${id}',1)">＋</button></div></div>`;
+  if(isField(id)){
+    b+=`<div class="lab" style="margin-top:7px">配种 <span class="muted" id="rem_${id}" style="font-size:12px;font-weight:400"></span></div>
+      <div>${it.crops.map(c=>`<div class="arow"><span class="ce">${CROP_EMO[c]||'🌱'}</span><span class="cn">${c}</span>
+        <div class="stepper sm"><button onclick="stepAlloc('${id}','${c}',-5)">−</button><b id="al_${id}_${c}">${FIELD[id].alloc[c]||0}</b><button onclick="stepAlloc('${id}','${c}',5)">＋</button></div><span class="mu">亩</span></div>`).join('')}</div>
+      <button class="btn" style="width:100%;margin-top:9px" onclick="floatAt(this,'开荒 +5亩 ✓')">＋ 开荒(+5亩 · 50两)</button>`;
+  } else {
+    b+=`<div class="lab" style="margin-top:7px">产出</div>
+      <div class="cropwrap">${it.crops.map(c=>`<div class="chip ${c===st.crop?'on':''}" onclick="setCrop('${id}','${c}',this)">${CROP_EMO[c]||''} ${c}</div>`).join('')}</div>`;
+  }
+  b+=`<button class="btn gold" style="width:100%;margin-top:11px" onclick="floatAt(this,'${isField(id)?'+1 田产/工':'升级 ✓'}')">🔧 ${isField(id)?'添置农具':'升级 / 添置'}</button>`;
+  setSheet(b); if(isField(id)) updateRem(id);
+}
+function stepAlloc(id,c,d){ const f=FIELD[id],sum=Object.values(f.alloc).reduce((a,b)=>a+b,0);
+  let v=(f.alloc[c]||0)+d; if(v<0)v=0; if(d>0&&sum+d>f.area)v=(f.alloc[c]||0)+(f.area-sum);
+  f.alloc[c]=v; document.getElementById('al_'+id+'_'+c).textContent=v; updateRem(id); floatAt(document.getElementById('al_'+id+'_'+c),d>0?'＋5亩':'−5亩'); }
+function updateRem(id){ const f=FIELD[id],sum=Object.values(f.alloc).reduce((a,b)=>a+b,0);
+  const el=document.getElementById('rem_'+id); if(el)el.textContent=`(未种 ${f.area-sum} / 共 ${f.area} 亩)`; }
+function stepWork(id,d){ const st=RT[id],it=ALL.find(i=>i.id===id); st.work=Math.max(0,Math.min(it.cap,st.work+d));
+  const w=document.getElementById('w_'+id); if(w)w.textContent=st.work; const wc=document.getElementById('wc_'+id); if(wc)wc.textContent=st.work+'/'+it.cap;
+  floatAt(w||document.body,d>0?'派工 ＋1':'撤工 −1'); }
+function setCrop(id,c,el){RT[id].crop=c;[...el.parentNode.children].forEach(x=>x.classList.remove('on'));el.classList.add('on');floatAt(el,'改为「'+c+'」');}
+
+const BUILDABLE=[{icon:'forest',nm:'林场',cost:'80两·1工',sub:'🌲 木料'},{icon:'paddy',nm:'水田',cost:'120两·1工',sub:'🌾 稻'},{icon:'mine',nm:'矿场',cost:'150两·4工',sub:'⚒️ 铁煤'},{icon:'mill',nm:'磨坊',cost:'100两·2工',sub:'🍚 粮→面'},{icon:'weaver',nm:'织坊',cost:'140两·2工',sub:'🧶 棉→布'},{icon:'teahouse',nm:'茶坊',cost:'130两·2工',sub:'🍵 茶→成品'}];
+function openBuild(){ setSheet(`<div class="grip"></div>
+  <div class="sh"><div><div class="nm">🏗 营造新产业</div><div class="sub">空闲长工 ${HUD.freeW} · 选一项</div></div><div class="x" onclick="closeSheet()">✕</div></div>
+  <div class="bgrid">${BUILDABLE.map(x=>`<div class="bcard" onclick="floatAt(this,'营造「${x.nm}」✓')"><img src="${ICON(x.icon)}"><div class="bn">${x.nm}</div><div class="bs">${x.sub}</div><div class="bc">${x.cost}</div><div class="bbtn">营造 ›</div></div>`).join('')}</div>`); }
+
+/* ===== 城镇 ===== */
+const CITY_PINS=[{key:'shop',icon:'house',nm:'铺面',x:30,y:40},{key:'price',icon:'hud_silver',nm:'行情',x:62,y:32},{key:'trade',icon:'carter',nm:'贩运',x:80,y:62},{key:'favor',icon:'hud_favor',nm:'官面',x:44,y:70},{key:'soc',icon:'academy',nm:'社会',x:18,y:62}];
+function renderCity(){
+  const hs=CITY_PINS.map(p=>`<div class="cmark" style="left:${p.x}%;top:${p.y}%" onclick="openCity('${p.key}')"><div class="ic"><img src="${ICON(p.icon)}"></div><div class="cl">${p.nm}</div></div>`).join('');
+  const labels=CITY_PINS.map(p=>`<button class="lbl" onclick="openCity('${p.key}')">${p.nm}</button>`).join('');
+  sceneScreen({bg:null, worldClass:'cmbg', cap:'成都府 · 州城', ph:'街道图占位 · 待 Codex 出图', hotspots:hs, labels});
+}
+const CITY_SHEET={
+  shop:{ic:'house',nm:'商号铺面',sub:'远城 3 间',body:`
+    <div class="chips"><div class="ci"><img src="${ICON('house')}">3 间</div><div class="ci"><img src="${ICON('hud_silver')}"><b>+55两/月</b></div></div>
+    <div class="arow"><span class="ce">🏪</span><span class="cn">粮行·成都</span><i class="tg lv" style="font-style:normal;padding:1px 7px;border-radius:8px;background:linear-gradient(180deg,#e7c876,var(--gold))">Lv2</i><span class="ilo" style="margin-left:auto;color:var(--good);font-weight:700">+24</span></div>
+    <div class="arow"><span class="ce">🧵</span><span class="cn">绸缎庄·重庆</span><i class="tg lv" style="font-style:normal;padding:1px 7px;border-radius:8px;background:linear-gradient(180deg,#e7c876,var(--gold))">Lv1</i><span class="ilo" style="margin-left:auto;color:var(--good);font-weight:700">+18</span></div>
+    <div class="arow"><span class="ce">🍶</span><span class="cn">酒楼·自贡</span><i class="tg lv" style="font-style:normal;padding:1px 7px;border-radius:8px;background:linear-gradient(180deg,#e7c876,var(--gold))">Lv1</i><span class="ilo" style="margin-left:auto;color:var(--good);font-weight:700">+13</span></div>
+    <button class="btn gold" style="width:100%;margin-top:10px" onclick="floatAt(this,'盘下新铺 ✓')">＋ 盘新铺 / 装修</button>`},
+  price:{ic:'hud_silver',nm:'各州行情',sub:'两 / 石·匹',body:`<div class="obox" style="font-size:12.5px;line-height:2">
+    <b style="color:var(--ink)">成都</b> 🌾2.0 · 🧵8.6 · 🍵9.2<br><b style="color:var(--ink)">重庆</b> 🌾2.3 · 🧵7.9 · 🧂4.1<br><b style="color:var(--ink)">自贡</b> 🌾2.5 · 🧂3.2 · 🧶5.8</div>`},
+  trade:{ic:'carter',nm:'跨城贩运',sub:'空车 1 辆',body:`<div class="obox">🧂自贡 3.2 → 成都 4.1 · 8日 · 净 <b>+0.9/担</b></div>
+    <button class="btn gold" style="width:100%" onclick="floatAt(this,'马车出发 ✓')">🐴 开一趟贩运</button>`},
+  favor:{ic:'hud_favor',nm:'官面应酬',sub:'好感 22',body:`<div class="chips"><div class="ci"><img src="${ICON('hud_favor')}">22</div><div class="ci">优免税</div></div>
+    <div class="row"><div class="lab">设宴</div><button class="btn acc" onclick="floatAt(this,'官面 +10')">摆席 −12两 · 官+10</button></div>`},
+  soc:{ic:'academy',nm:'盐 · 镖 · 科举 · 书局',sub:'功名 监生',body:`<div class="cropwrap"><div class="chip">🧂 盐务</div><div class="chip">🛡️ 镖局</div><div class="chip">📜 科举</div><div class="chip">📚 书局</div></div>`},
+};
+function openCity(k){const c=CITY_SHEET[k];
+  setSheet(`<div class="grip"></div><div class="sh"><img src="${ICON(c.ic)}" style="object-fit:contain"><div><div class="nm">${c.nm}</div><div class="sub">${c.sub}</div></div><div class="x" onclick="closeSheet()">✕</div></div>${c.body}`); }
+
+/* ===== 通用 ===== */
+function pinInfo(nm,ot){ setSheet(`<div class="grip"></div><div class="sh"><div><div class="nm">${nm}</div><div class="sub">${ot}</div></div><div class="x" onclick="closeSheet()">✕</div></div><div class="obox">宅院屋宇。产业派工请到底部「产业」。</div>`); }
+function setSheet(html){document.getElementById('sheet').innerHTML=html;document.getElementById('sheet').classList.add('on');document.getElementById('sheetbg').classList.add('on');}
+function closeSheet(){document.getElementById('sheet').classList.remove('on');document.getElementById('sheetbg').classList.remove('on');}
+
+function go(k){
+  document.getElementById('tabs').innerHTML=tabbarHTML(k); bindTabs(); closeSheet();
+  if(k==='home') renderHome();
+  else if(k==='farm') renderFarm();
+  else if(k==='city') renderCity();
+  else { const s=document.getElementById('screen'); s.className='screen'; s.innerHTML=stubHTML({town:'市集 · 场镇',set:'设置'}[k]||k,{town:'🏪',set:'⚙'}[k]||'·','本套用同样的「大图舞台 + 标签」呈现。'); }
+}
+function bindTabs(){document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>go(t.dataset.tab));}
+document.getElementById('tabs').innerHTML=tabbarHTML('farm'); bindTabs(); renderFarm();
+</script>
+</body></html>

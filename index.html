@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>大农庄 · 卡片经营</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#5a4632">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="大农庄">
+<link rel="icon" type="image/webp" href="assets/icon-192.webp">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="stylesheet" href="style.css?v=2606201400">
+<link rel="stylesheet" href="layout.css?v=2606201400">
+<!-- 动效:4 模块(氛围/生产反馈/界面转场/活的院落),默认开,设置页「动效」总开关(fxctl) -->
+<link rel="stylesheet" href="fx/ambient.css?v=2606201400">
+<link rel="stylesheet" href="fx/juice.css?v=2606201400">
+<link rel="stylesheet" href="fx/uimotion.css?v=2606201400">
+<link rel="stylesheet" href="fx/scene.css?v=2606201400">
+</head>
+<body>
+<div id="cover">
+  <div class="cover-inner">
+    <img id="cover-logo" src="assets/logo.webp?v=2606201400" alt="大农庄" width="1000" height="515">
+    <div class="cover-sub">清 · 一八〇〇 — 家族经营沉浮</div>
+  </div>
+  <div class="cover-foot">
+    <button id="cover-start">进 庄</button>
+    <div class="cover-tip">点击进入</div>
+  </div>
+</div>
+<div id="app">
+  <header id="hud">
+    <div class="hud-main">
+      <div class="hud-stats">
+        <div class="stat acc" data-tip="家产 · 现银+存货+产业总值,决定阶位"><span class="si"><img class="hudico" src="assets/icons/hud_assets.webp?v=2606201400" alt=""></span><b id="assets">0</b></div>
+        <div class="stat" data-tip="纹银 · 现银,买卡/雇人/赴考都用它"><span class="si"><img class="hudico" src="assets/icons/hud_silver.webp?v=2606201400" alt=""></span><b id="silver">30</b></div>
+        <div class="stat" onclick="openInventory&&openInventory()" style="cursor:pointer" data-tip="粮 · 院子口粮(红)/可交易/在长 · 点看全部库存"><span class="si"><img class="hudico" src="assets/icons/hud_grain.webp?v=2606201400" alt=""></span><b id="grain">25/65/0</b></div>
+        <div class="stat" data-tip="人手 · 空闲(红)/在用/上限;点产业卡派工,盖宅院提上限"><span class="si"><img class="hudico" src="assets/icons/hud_labor.webp?v=2606201400" alt=""></span><b id="labor">0/0/0</b></div>
+        <div class="stat" data-tip="官面好感 · 宴官攒,买盐引/做官的门槛"><span class="si"><img class="hudico" src="assets/icons/hud_favor.webp?v=2606201400" alt=""></span><b id="favor">0</b></div>
+      </div>
+      <div class="hud-time">
+        <span id="date">第1年 · 春</span>
+        <div class="speed" id="speed"><button data-sp="0">⏸</button><button data-sp="1" class="on">▶</button><button data-sp="3">⏩</button></div>
+      </div>
+    </div>
+    <div class="hud-bar"><span class="tiername"><span id="tier">流民</span>·<span id="surname">李</span>家</span><div class="tierbarwrap"><div id="tierbar"></div></div><span id="tiernext"></span></div>
+  </header>
+
+  <div id="buildbar"></div>
+
+  <main id="main"></main>
+
+  <div id="subbar"></div>
+
+  <footer id="tabbar">
+    <button data-view="home" class="on"><span><img class="tabico" src="assets/icons/tab_home.webp?v=2606201400" alt=""></span>府宅</button>
+    <button data-view="farm"><span><img class="tabico" src="assets/icons/tab_farm.webp?v=2606201400" alt=""></span>田庄</button>
+    <button data-view="town"><span><img class="tabico" src="assets/icons/tab_town.webp?v=2606201400" alt=""></span>街市</button>
+    <button data-view="city"><span><img class="tabico" src="assets/icons/tab_city.webp?v=2606201400" alt=""></span>州城</button>
+    <button data-view="tian" id="tab-tian" style="display:none"><span class="tabico" style="font-size:20px;line-height:1.1">🏴</span>天下</button>
+    <button data-view="set"><span><img class="tabico" src="assets/icons/tab_set.webp?v=2606201400" alt=""></span>设置</button>
+  </footer>
+</div>
+
+<div id="toast"></div>
+<div id="modal" class="hidden"><div id="modal-box"></div></div>
+<div id="sheetbg" class="hidden"></div>
+<div id="sheet" class="hidden"></div>
+<!-- 代码按层拆分,顺序加载(全局共享作用域,init 在 main.js 末尾):数据→状态→引擎→渲染→家族→各系统→入口 -->
+<script src="data.js?v=2606201400"></script>
+<script src="state.js?v=2606201400"></script>
+<script src="engine.js?v=2606201400"></script>
+<script src="components.js?v=2606201400"></script>
+<script src="scene.js?v=2606201400"></script>
+<script src="render.js?v=2606201400"></script>
+<script src="family.js?v=2606201400"></script>
+<script src="systems.js?v=2606201400"></script>
+<script src="events.js?v=2606201400"></script>
+<script src="war.js?v=2606201400"></script>
+<script src="main.js?v=2606201400"></script>
+<script src="admin.js?v=2606201400"></script>
+<!-- 动效模块(默认开,fxctl 总控) -->
+<script src="fx/ambient.js?v=2606201400"></script>
+<script src="fx/juice.js?v=2606201400"></script>
+<script src="fx/uimotion.js?v=2606201400"></script>
+<script src="fx/scene.js?v=2606201400"></script>
+<script src="fx/fxctl.js?v=2606201400"></script>
+<script src="fx/bgm.js?v=2606201400"></script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){});}</script>
+<script>/* 封面页:点击进庄淡出 */
+(function(){var c=document.getElementById('cover');if(!c)return;
+ var go=function(){if(c.classList.contains('gone'))return;c.classList.add('gone');setTimeout(function(){c.style.display='none';},650);};
+ c.addEventListener('click',go);})();</script>
+</body>
+</html>

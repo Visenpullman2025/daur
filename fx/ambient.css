@@ -1,0 +1,224 @@
+/* ═══════════════════════════════════════════════════════════════════
+   氛围环境动效 · ambient.css  (《大农庄》原型 · 古纸工笔国画风)
+   - 持久 fixed 覆盖层 #fx-ambient (z:9 内容之上、modal:40 之下、pointer:none)
+   - 飘落花瓣/落叶 · 缓缓飘移的云雾 · 偶尔掠过的飞鸟
+   - .manorbanner: 极轻 ken-burns + 屋顶炊烟 + 红灯笼光晕
+   - 全部用 transform/opacity (GPU);夜间(theme-night)自动更淡
+   - 主题安全:颜色取自暖色系/半透明,不依赖具体配色变量也能看
+   只新建此文件,不改任何既有样式。
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── 持久覆盖层 ───────────────────────────────────────────────── */
+#fx-ambient{
+  position:fixed; inset:0;
+  z-index:9;                 /* 内容材质叠加是 8,modal 是 40/60 → 居中 */
+  pointer-events:none;
+  overflow:hidden;
+  contain:strict;            /* 限制重排/重绘范围,手机更稳 */
+  /* 整体强度,夜间下调;由 body 类 / JS 控制 */
+  --fx-strength:1;
+  opacity:var(--fx-strength);
+  transition:opacity .8s ease;
+}
+#fx-ambient.fx-off{ opacity:0 !important; }
+/* 页面切到后台时暂停全部子动画(JS 在 visibilitychange 切此类) */
+#fx-ambient.fx-paused *{ animation-play-state:paused !important; }
+/* 减少动态偏好 → 直接隐藏全部环境动效 */
+@media (prefers-reduced-motion:reduce){
+  #fx-ambient{ display:none !important; }
+}
+
+/* ── 粒子通用:花瓣 / 叶 ─────────────────────────────────────────
+   每个粒子是一片小薄片,父层负责"下落+横向飘移",子层负责"自旋+摆动"
+   —— 拆两层是为了让两条 transform 动画互不打架(都走 GPU) */
+.fx-petal{
+  position:absolute; top:-6vh;
+  will-change:transform, opacity;
+  animation-name:fx-fall;
+  animation-timing-function:linear;
+  animation-iteration-count:infinite;
+}
+.fx-petal i{
+  display:block;
+  width:11px; height:8px;
+  /* 工笔花瓣:一头圆一头尖的椭圆,暖粉/暖黄,半透明 */
+  border-radius:60% 60% 60% 60% / 80% 80% 30% 30%;
+  background:
+    radial-gradient(120% 120% at 30% 25%,
+      rgba(255,244,232,.95), rgba(244,196,178,.85) 55%, rgba(206,124,98,.7));
+  box-shadow:inset 0 -2px 3px rgba(150,70,52,.25);
+  opacity:.85;
+  will-change:transform;
+  animation-name:fx-flutter;
+  animation-timing-function:ease-in-out;
+  animation-iteration-count:infinite;
+  transform-origin:50% 0%;
+}
+/* 落叶变体:偏褐黄、稍大、更钝 */
+.fx-petal.fx-leaf i{
+  width:13px; height:10px;
+  border-radius:55% 70% 55% 70% / 65% 60% 50% 50%;
+  background:
+    radial-gradient(120% 120% at 35% 25%,
+      rgba(232,196,128,.95), rgba(192,140,66,.85) 55%, rgba(140,90,40,.72));
+  box-shadow:inset 0 -2px 3px rgba(96,58,20,.3);
+  opacity:.78;
+}
+
+/* 下落:垂直位移 + 缓慢横移(横移幅度用 --sway,JS 写) */
+@keyframes fx-fall{
+  0%  { transform:translate3d(0,            -8vh, 0); }
+  100%{ transform:translate3d(var(--sway,4vw),112vh, 0); }
+}
+/* 摆动+自旋:让薄片像真花瓣一样翻面飘 */
+@keyframes fx-flutter{
+  0%  { transform:rotateZ(0deg)   rotateY(0deg)   translateX(0); }
+  25% { transform:rotateZ(40deg)  rotateY(140deg) translateX(7px); }
+  50% { transform:rotateZ(-20deg) rotateY(300deg) translateX(-6px); }
+  75% { transform:rotateZ(35deg)  rotateY(200deg) translateX(6px); }
+  100%{ transform:rotateZ(0deg)   rotateY(360deg) translateX(0); }
+}
+
+/* ── 云 / 雾:大块柔光,极慢横向漂移 ─────────────────────────── */
+.fx-cloud{
+  position:absolute;
+  width:60vw; max-width:520px; height:30vh; max-height:240px;
+  border-radius:50%;
+  /* 暖白雾团,边缘彻底化开 */
+  background:radial-gradient(ellipse at center,
+    rgba(255,250,238,.5), rgba(255,248,232,.22) 45%, transparent 70%);
+  filter:blur(14px);
+  opacity:.55;
+  will-change:transform;
+  animation-name:fx-drift;
+  animation-timing-function:linear;
+  animation-iteration-count:infinite;
+}
+.fx-cloud.fx-mist{
+  width:120vw; max-width:none; height:22vh; max-height:170px;
+  background:linear-gradient(to top,
+    rgba(255,250,240,.4), rgba(255,250,240,.14) 55%, transparent);
+  filter:blur(20px);
+  opacity:.4;
+}
+@keyframes fx-drift{
+  0%  { transform:translate3d(-70vw,0,0); }
+  100%{ transform:translate3d(120vw,0,0); }
+}
+
+/* ── 飞鸟:偶尔从一侧掠过 ───────────────────────────────────────
+   两笔工笔写意"人"字鸟,用细伪元素 + 翅膀扇动 */
+.fx-bird{
+  position:absolute; top:14vh; left:-8vw;
+  width:16px; height:10px;
+  will-change:transform, opacity;
+  opacity:0;
+  animation-name:fx-fly;
+  animation-timing-function:linear;
+  animation-iteration-count:infinite;
+}
+.fx-bird b, .fx-bird s{
+  position:absolute; top:50%; left:50%;
+  width:9px; height:2px; margin-top:-1px;
+  background:linear-gradient(90deg, transparent, rgba(72,52,34,.82));
+  border-radius:2px;
+  transform-origin:0% 50%;
+  animation:fx-wing 0.5s ease-in-out infinite;
+}
+.fx-bird b{ transform:rotate(20deg); }
+.fx-bird s{ transform:scaleX(-1) rotate(20deg); }
+@keyframes fx-wing{
+  0%,100%{ transform:rotate(22deg); }
+  50%    { transform:rotate(-12deg); }
+}
+.fx-bird s{ animation-name:fx-wing-r; }
+@keyframes fx-wing-r{
+  0%,100%{ transform:scaleX(-1) rotate(22deg); }
+  50%    { transform:scaleX(-1) rotate(-12deg); }
+}
+/* 横掠全屏,中段缓抬一下高度,做出滑翔弧线;两头淡入淡出 */
+@keyframes fx-fly{
+  0%  { transform:translate3d(0,0,0);            opacity:0; }
+  8%  { opacity:.85; }
+  45% { transform:translate3d(55vw,-6vh,0); }
+  90% { opacity:.85; }
+  100%{ transform:translate3d(120vw,2vh,0);       opacity:0; }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   大宅横幅 .manorbanner 的局部氛围(挂在 banner 内部,随内容流)
+   —— JS 探测到 banner 后给它加 .fx-banner-on 并注入子层
+   ════════════════════════════════════════════════════════════════ */
+
+/* ken-burns:极轻的缩放+平移,慢循环。只动 img,不影响 mbcap 文字 */
+.manorbanner.fx-banner-on img{
+  will-change:transform;
+  animation:fx-kenburns 34s ease-in-out infinite alternate;
+}
+@keyframes fx-kenburns{
+  0%  { transform:scale(1.0)  translate(0,0); }
+  100%{ transform:scale(1.055) translate(-1.2%,-1%); }
+}
+
+/* banner 内动效层:绝对铺满 banner,不挡点击 */
+.manorbanner .fx-banner-layer{
+  position:absolute; inset:0;
+  pointer-events:none;
+  overflow:hidden;
+  border-radius:inherit;
+  z-index:1;                 /* 在 img 之上、mbcap(它后于此节点) 之下 */
+}
+
+/* 屋顶炊烟:两缕,从 banner 中上偏位袅袅升起、变淡飘散 */
+.fx-smoke{
+  position:absolute;
+  bottom:46%;                /* 大致屋顶高度;banner 都是 3:2 全景 */
+  width:10px; height:10px;
+  border-radius:50%;
+  background:radial-gradient(circle at 50% 50%,
+    rgba(245,238,226,.55), rgba(238,230,214,.2) 60%, transparent 72%);
+  filter:blur(3px);
+  opacity:0;
+  will-change:transform, opacity;
+  animation:fx-smoke-rise 6.5s ease-in infinite;
+}
+.fx-smoke.s1{ left:30%; animation-delay:0s; }
+.fx-smoke.s2{ left:33%; animation-delay:3.2s; transform:scale(.8); }
+@keyframes fx-smoke-rise{
+  0%  { opacity:0;   transform:translate(0,0)    scale(.5); }
+  18% { opacity:.5; }
+  60% { opacity:.32; transform:translate(8px,-46px) scale(1.7); }
+  100%{ opacity:0;   transform:translate(20px,-92px) scale(2.6); }
+}
+
+/* 红灯笼光晕:暖红柔光,轻轻呼吸明暗(像被风吹的灯火) */
+.fx-lantern{
+  position:absolute;
+  width:46px; height:46px;
+  border-radius:50%;
+  background:radial-gradient(circle at 50% 45%,
+    rgba(255,180,120,.6), rgba(216,90,60,.32) 42%, transparent 70%);
+  filter:blur(4px);
+  mix-blend-mode:screen;     /* 暖光叠加,夜间尤其有味道 */
+  will-change:opacity, transform;
+  animation:fx-lantern-glow 3.4s ease-in-out infinite;
+}
+.fx-lantern.l1{ left:9%;  bottom:14%; }
+.fx-lantern.l2{ right:9%; bottom:14%; animation-delay:-1.6s; }
+@keyframes fx-lantern-glow{
+  0%,100%{ opacity:.5;  transform:scale(1)    translateY(0); }
+  50%    { opacity:.85; transform:scale(1.12) translateY(-1px); }
+}
+
+/* ── 夜间主题:整体更淡、灯笼更亮、雾收敛 ─────────────────────── */
+body.theme-night #fx-ambient{ --fx-strength:.62; }
+body.theme-night .fx-cloud{ opacity:.32; }
+body.theme-night .fx-petal i{ opacity:.6; }
+body.theme-night .fx-lantern{ animation-name:fx-lantern-glow-night; }
+@keyframes fx-lantern-glow-night{
+  0%,100%{ opacity:.7;  transform:scale(1.05) translateY(0); }
+  50%    { opacity:1;   transform:scale(1.2)  translateY(-1px); }
+}
+/* 清雅主题:冷色场景下花瓣/暖光略收,雾保持 */
+body.theme-qing #fx-ambient{ --fx-strength:.85; }
+body.theme-qing .fx-lantern{ opacity:.8; }

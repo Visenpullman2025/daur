@@ -1,0 +1,90 @@
+<!doctype html><html lang="zh"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>大农庄 · 版面候选</title>
+<link rel="stylesheet" href="base.css">
+<style>
+body{justify-content:flex-start}
+.wrap{width:100%;max-width:560px;display:flex;flex-direction:column;gap:14px;padding:6px 4px 30px}
+.head{text-align:center;color:#f1e2bd;margin:6px 0 2px}
+.head img{height:84px;object-fit:contain;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5))}
+.head h1{font-size:21px;letter-spacing:2px;margin-top:6px;color:#f7e9c6}
+.head p{font-size:13.5px;color:#cdb88c;margin-top:6px;line-height:1.7;max-width:460px;margin-left:auto;margin-right:auto}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+@media(max-width:520px){.grid{grid-template-columns:1fr}}
+.opt{background:
+    repeating-linear-gradient(45deg,rgba(0,0,0,.012) 0 2px,transparent 2px 5px),var(--card);
+  border:1px solid var(--line2);border-radius:16px;overflow:hidden;text-decoration:none;color:var(--ink);
+  box-shadow:var(--shadow-lg);display:flex;flex-direction:column;transition:transform .12s}
+.opt:hover{transform:translateY(-3px)}
+.opt .pic{height:104px;background:linear-gradient(160deg,#d8c7a2,#c8b489);position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--line2)}
+.opt .pic .mock{font-size:11px;line-height:1.3;color:#5a4a30;font-family:monospace;white-space:pre;opacity:.85}
+.opt .badge{position:absolute;top:8px;left:8px;background:linear-gradient(180deg,#cda63f,#b3892f);color:#3c2e12;
+  font-weight:700;font-size:11px;padding:2px 9px;border-radius:20px;box-shadow:var(--shadow)}
+.opt .rec{position:absolute;top:8px;right:8px;background:var(--accent);color:#fbeede;font-size:11px;padding:2px 9px;border-radius:20px}
+.opt .body{padding:11px 13px 13px}
+.opt h3{font-size:16.5px;color:var(--accent);margin-bottom:5px}
+.opt p{font-size:12.8px;color:var(--ink2);line-height:1.65}
+.opt .go{margin-top:9px;text-align:center;font-size:13.5px;color:var(--gold);font-weight:700}
+.foot{text-align:center;color:#9a8862;font-size:12px;line-height:1.7;margin-top:4px}
+</style></head><body>
+
+<div class="wrap">
+  <div class="head">
+    <img src="../assets/logo.webp" alt="大农庄">
+    <h1>版面候选 · 四套</h1>
+    <p>同一份玩法与数值,四种不同的「版面 + 管理方式」。点进去随便点——切页、点田、派工、改种都能动。重点看你顺不顺眼、有没有「游戏感」。挑出你喜欢的,我再做成正式版。</p>
+  </div>
+
+  <div class="grid">
+    <a class="opt" href="d1.html">
+      <div class="pic"><div class="badge">1</div><div class="rec">推荐</div>
+        <div class="mock">┌──庄园全景──┐
+│ 🏯水墨大图  │
+│ 🌾+18 🏭+9 │
+└─点田→滑出─┘</div></div>
+      <div class="body"><h3>庭院沙盘</h3>
+        <p>宅院页=一张活的水墨庄园大图,田/坊/矿是图上可点的热点,头上飘产出;点某处→底部滑出面板管理。最有「游戏感」。</p>
+        <div class="go">进入预览 ›</div></div>
+    </a>
+
+    <a class="opt" href="d2.html">
+      <div class="pic"><div class="badge">2</div><div class="rec">推荐</div>
+        <div class="mock">⌜▔▔⌝  旱田 ✦✦✦
+│🌾│ 麦菽 +18
+⌞▁▁⌟ 点→就地展开
+农耕▸[田][桑]→</div></div>
+      <div class="body"><h3>图鉴卡片</h3>
+        <p>每个产业=带插画+品级边框的「藏品卡」,横向卡架按类滑动;点卡→卡面就地展开管理,不再跳丑弹窗。美术前置。</p>
+        <div class="go">进入预览 ›</div></div>
+    </a>
+
+    <a class="opt" href="d3.html">
+      <div class="pic"><div class="badge">3</div>
+        <div class="mock">银8706 粮+12 丁19
+┌──┬─┬──┬──┐
+│旱田│4│+18│改│
+│磨坊│2│+9│改│
+└──┴─┴──┴──┘</div></div>
+      <div class="body"><h3>帐房仪表盘</h3>
+        <p>一张精致「管家帐册」:产业排成紧凑表格,每行直接 +/- 派工、就地改种,常用操作全免弹窗。适合看数字/放置党。</p>
+        <div class="go">进入预览 ›</div></div>
+    </a>
+
+    <a class="opt" href="d4.html">
+      <div class="pic"><div class="badge">4</div>
+        <div class="mock">❖ 农耕 ─────
+┌─────────┐
+│🌾旱田 +18 ▾│点▾就地展开
+└─────────┘
+│🐑牧场 +6 ▸│</div></div>
+      <div class="body"><h3>线装精修</h3>
+        <p>保留现在的竖向卡片流+分区,但把丑弹窗换成「就地展开」,整体美化(插画/边框/纹样)。改动最小、最稳、最像现在的升级版。</p>
+        <div class="go">进入预览 ›</div></div>
+    </a>
+  </div>
+
+  <div class="foot">四套都是<strong style="color:#cdb88c">真演示</strong>,非截图——进去能点能切。<br>看完告诉我:整套挑哪个 / 哪套的哪部分(比如某套的卡片+另一套的管理方式)合你意。</div>
+</div>
+</body></html>

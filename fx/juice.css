@@ -1,0 +1,128 @@
+/* ============================================================
+   juice.css — 生产/收成反馈动效(juice)样式层。
+   风格:古铜/金色国风,雅致克制(非街机)。全部 transform/opacity,GPU 友好。
+   只配合 fx/juice.js;独立覆盖层 #fx-juice(fixed, pointer-events:none),
+   不挂 #main、不影响布局、不拦点击。主题安全(色取 CSS 变量 + 内联兜底)。
+   ============================================================ */
+
+/* 持久覆盖层:钉满视口、不拦点击、夹在正文之上 / 弹窗(z60)与 toast(z70)之下 */
+#fx-juice{
+  position:fixed; inset:0;
+  z-index:55; pointer-events:none;
+  overflow:hidden;
+  contain:strict;                 /* 隔离重排/重绘范围,性能优先 */
+}
+
+/* —— 飞行粒子(铜钱 / 谷粒):从来源飞向顶栏数值 —— */
+#fx-juice .fxp{
+  position:absolute; left:0; top:0;
+  width:18px; height:18px; margin:-9px 0 0 -9px;   /* 以中心定位 */
+  display:flex; align-items:center; justify-content:center;
+  font-size:15px; line-height:1;
+  will-change:transform, opacity;
+  filter:drop-shadow(0 1px 2px rgba(60,40,16,.45));
+  /* 位移由 JS 写入 --fx-* 自定义属性,这里只跑统一缓动 */
+  animation:fxfly var(--fx-dur,720ms) cubic-bezier(.45,.05,.3,1) forwards;
+  animation-delay:var(--fx-delay,0ms);
+  opacity:0;
+}
+/* 铜钱:暗金渐变小圆 + 方孔(雅致,非闪) */
+#fx-juice .fxp.coin{
+  border-radius:50%;
+  background:radial-gradient(circle at 38% 34%, #f4dd99 0%, #d8af52 38%, #b3892f 70%, #8a6a26 100%);
+  box-shadow:inset 0 1px 1px rgba(255,244,210,.7), inset 0 -1px 2px rgba(90,64,20,.55);
+  border:1px solid rgba(120,86,28,.55);
+  font-size:0;
+}
+#fx-juice .fxp.coin::after{
+  content:""; width:5px; height:5px; border-radius:1px;
+  background:rgba(74,52,18,.62); box-shadow:inset 0 0 0 1px rgba(255,240,200,.18);
+}
+/* 谷粒:暖黄椭圆 */
+#fx-juice .fxp.grain{
+  width:9px; height:13px; margin:-6px 0 0 -4px;
+  border-radius:50% 50% 48% 48% / 62% 62% 38% 38%;
+  background:linear-gradient(160deg,#f3e2a6,#d9b24f 70%,#b78a32);
+  box-shadow:inset 0 1px 1px rgba(255,248,220,.7);
+  transform-origin:center;
+}
+/* 二维贝塞尔飞行:JS 给 --fx-mx/--fx-my(中点起拱)和 --fx-dx/--fx-dy(终点) */
+@keyframes fxfly{
+  0%  { opacity:0; transform:translate(var(--fx-sx,0),var(--fx-sy,0)) scale(.5) rotate(0deg); }
+  14% { opacity:1; transform:translate(var(--fx-mx,0),var(--fx-my,0)) scale(1.06) rotate(120deg); }
+  82% { opacity:1; }
+  100%{ opacity:0; transform:translate(var(--fx-dx,0),var(--fx-dy,0)) scale(.42) rotate(360deg); }
+}
+
+/* —— 命中顶栏:数值脉冲(独立类,不和 game 的 .pulse 冲突) —— */
+.fx-hit{
+  display:inline-block;
+  animation:fxhit .5s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes fxhit{
+  0%  { transform:scale(1); }
+  38% { transform:scale(1.34); text-shadow:0 0 9px rgba(255,216,118,.85), 0 0 2px rgba(255,236,190,.9); }
+  100%{ transform:scale(1); text-shadow:none; }
+}
+
+/* —— 卡片产出:图标 squash & stretch 弹跳 —— */
+.fx-bounce{ animation:fxbounce .46s cubic-bezier(.3,1.4,.5,1); transform-origin:center bottom; }
+@keyframes fxbounce{
+  0%  { transform:scale(1,1); }
+  22% { transform:scale(1.22,.82); }       /* squash */
+  46% { transform:scale(.9,1.16); }        /* stretch */
+  70% { transform:scale(1.06,.95); }
+  100%{ transform:scale(1,1); }
+}
+
+/* —— 收成金色火花:一处卡片上迸几点(短促、淡、不过曝) —— */
+#fx-juice .fxspark{
+  position:absolute; left:0; top:0;
+  width:6px; height:6px; margin:-3px 0 0 -3px; border-radius:50%;
+  background:radial-gradient(circle, #fff4cf 0%, #f2cf76 45%, rgba(179,137,47,0) 72%);
+  will-change:transform, opacity; opacity:0;
+  animation:fxspark var(--fx-dur,560ms) ease-out forwards;
+  animation-delay:var(--fx-delay,0ms);
+}
+@keyframes fxspark{
+  0%  { opacity:0; transform:translate(0,0) scale(.3); }
+  18% { opacity:.95; }
+  100%{ opacity:0; transform:translate(var(--fx-dx,0),var(--fx-dy,0)) scale(.9); }
+}
+/* 卡片火花的暖光圈底(一闪即收) */
+#fx-juice .fxglow{
+  position:absolute; left:0; top:0; width:64px; height:64px; margin:-32px 0 0 -32px;
+  border-radius:50%; opacity:0;
+  background:radial-gradient(circle, rgba(255,224,140,.5) 0%, rgba(255,210,110,.18) 45%, rgba(179,137,47,0) 70%);
+  animation:fxglow .5s ease-out forwards;
+}
+@keyframes fxglow{ 0%{opacity:0;transform:scale(.4)} 30%{opacity:.85} 100%{opacity:0;transform:scale(1.25)} }
+
+/* —— 大成就金光迸发(升阶/中举/达标):全屏极淡金晕 + 一圈光环 —— */
+#fx-juice .fxburst{
+  position:absolute; left:50%; top:42%;
+  width:10px; height:10px; margin:-5px 0 0 -5px; border-radius:50%;
+  box-shadow:0 0 0 0 rgba(255,214,120,.55);
+  animation:fxburst .85s cubic-bezier(.2,.7,.3,1) forwards;
+}
+@keyframes fxburst{
+  0%  { box-shadow:0 0 0 0 rgba(255,214,120,.55), 0 0 0 0 rgba(255,236,190,.4); opacity:1; }
+  100%{ box-shadow:0 0 0 220px rgba(255,214,120,0), 0 0 0 320px rgba(255,236,190,0); opacity:0; }
+}
+#fx-juice .fxveil{
+  position:absolute; inset:0;
+  background:radial-gradient(circle at 50% 42%, rgba(255,224,140,.22), rgba(255,224,140,.06) 42%, transparent 66%);
+  opacity:0; animation:fxveil .8s ease-out forwards;
+}
+@keyframes fxveil{ 0%{opacity:0} 22%{opacity:1} 100%{opacity:0} }
+
+/* 关闭开关:#fx-juice.off 一切动效隐藏(__fx_juice_off) */
+#fx-juice.off > *{ display:none !important; }
+
+/* 尊重「减少动态效果」无障碍设置:整体收敛(仍允许极短淡入,免突兀) */
+@media (prefers-reduced-motion: reduce){
+  #fx-juice .fxp, #fx-juice .fxspark, #fx-juice .fxburst, #fx-juice .fxveil, #fx-juice .fxglow{
+    animation-duration:.28s !important;
+  }
+  .fx-bounce{ animation-duration:.2s !important; }
+}

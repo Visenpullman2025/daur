@@ -1,0 +1,137 @@
+<!doctype html><html lang="zh"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>图鉴卡片 · 大农庄版面</title>
+<link rel="stylesheet" href="base.css">
+<style>
+.shelf{display:flex;gap:11px;overflow-x:auto;padding:3px 2px 11px;scroll-snap-type:x proximity}
+.shelf::-webkit-scrollbar{height:0}
+.gcard{flex:0 0 auto;width:140px;scroll-snap-align:start;background:var(--card);border-radius:14px;overflow:hidden;
+  border:1px solid var(--line2);box-shadow:var(--shadow);cursor:pointer;position:relative;transition:transform .12s}
+.gcard:active{transform:scale(.97)}
+.gcard.sel{outline:2.5px solid var(--gold);outline-offset:-1px}
+.gcard .tband{height:4px}
+.gcard .art{height:100px;display:flex;align-items:center;justify-content:center;position:relative;
+  background:radial-gradient(circle at 50% 36%,#fbf4e2,#e8d9ba);border-bottom:1px solid var(--line)}
+.gcard .art img{width:66px;height:66px;object-fit:contain;filter:drop-shadow(0 3px 6px rgba(60,40,16,.32))}
+.gcard .cnt{position:absolute;top:6px;right:7px;background:rgba(60,46,28,.82);color:#f3e7cf;font-size:11px;padding:1px 7px;border-radius:12px}
+.gcard .st{position:absolute;bottom:5px;left:7px}
+.gcard .info{padding:7px 9px 10px}
+.gcard .info .nm{font-size:15px;font-weight:700;display:flex;justify-content:space-between;align-items:baseline}
+.gcard .info .nm small{font-size:10.5px;color:var(--mut);font-weight:400}
+.gcard .info .cr{font-size:11.5px;color:var(--ink2);margin-top:1px}
+.gcard .info .ot{font-size:13px;color:var(--good);font-weight:700;margin-top:4px}
+.gcard .more{text-align:center;font-size:11px;color:var(--gold);border-top:1px dashed var(--line);padding:5px 0 1px;margin-top:6px}
+
+.detail{background:repeating-linear-gradient(45deg,rgba(0,0,0,.012) 0 2px,transparent 2px 5px),var(--card);
+  border:1px solid var(--line2);border-radius:14px;box-shadow:var(--shadow-lg);padding:13px 14px 15px;margin:0 2px 14px;
+  border-top:4px solid var(--gold);animation:grow .24s cubic-bezier(.2,.85,.2,1)}
+@keyframes grow{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:none}}
+.detail .dh{display:flex;align-items:center;gap:12px;margin-bottom:9px}
+.detail .dh img{width:60px;height:60px;object-fit:contain;background:radial-gradient(circle,rgba(255,255,255,.7),transparent 70%);border-radius:10px}
+.detail .dh .nm{font-size:19px;font-weight:700}
+.detail .dh .sub{font-size:12px;color:var(--ink2);margin-top:2px}
+.detail .dh .x{margin-left:auto;font-size:22px;color:var(--mut);cursor:pointer;padding:0 4px}
+.obox{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 11px;font-size:13px;color:var(--ink2);margin-bottom:10px}
+.obox b{color:var(--good);font-size:15px}
+.row{display:flex;align-items:center;justify-content:space-between;margin:9px 0}
+.row .lab{font-size:14px;font-weight:700}
+.cropwrap{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}
+
+/* 宅院:宅邸 hero + 家族图鉴 */
+.hero{position:relative;border-radius:15px;overflow:hidden;border:1px solid var(--line2);box-shadow:var(--shadow-lg);height:150px;
+  background-size:cover;background-position:center 60%;margin-bottom:4px}
+.hero .hv{position:absolute;inset:0;background:linear-gradient(180deg,rgba(40,30,16,.05),rgba(40,30,16,.55))}
+.hero .ht{position:absolute;left:13px;bottom:11px;color:#f3e7cf}
+.hero .ht b{font-size:19px;display:block}.hero .ht span{font-size:12px;color:#e0cda3}
+.hero .lv{position:absolute;right:11px;top:10px;background:linear-gradient(180deg,#cda63f,#b3892f);color:#3c2e12;font-weight:700;font-size:12px;padding:3px 11px;border-radius:16px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.pcard{background:var(--card);border:1px solid var(--line2);border-radius:13px;overflow:hidden;box-shadow:var(--shadow);display:flex}
+.pcard .pa{width:74px;flex:0 0 auto;background:radial-gradient(circle at 50% 40%,#fbf4e2,#e8d9ba);display:flex;align-items:center;justify-content:center;border-right:1px solid var(--line)}
+.pcard .pa img{width:54px;height:54px;object-fit:contain}
+.pcard .pb{padding:8px 9px}
+.pcard .pb .r{font-size:11px;color:var(--accent);font-weight:700}
+.pcard .pb .n{font-size:15px;font-weight:700}
+.pcard .pb .t{font-size:11px;color:var(--ink2);margin-top:3px;line-height:1.4}
+</style></head><body>
+
+<div id="nav"></div>
+<div class="phone">
+  <div id="hud"></div>
+  <main class="screen" id="screen"></main>
+  <div id="tabs"></div>
+</div>
+
+<script src="demo.js"></script>
+<script>
+document.getElementById('nav').innerHTML = demonavHTML(1);
+document.getElementById('hud').innerHTML = hudHTML();
+const RT = {}; ALL.forEach(it=>RT[it.id]={work:it.work, crop:it.crops[0]});
+let sel = 'field';   // 当前展开的卡
+
+function cardHTML(it){
+  return `<div class="gcard ${it.id===sel?'sel':''}" onclick="pick('${it.id}')">
+    <div class="tband" style="background:${tcol(it.tier)}"></div>
+    <div class="art"><img src="${ICON(it.icon)}">
+      <div class="cnt">×${it.count}</div>
+      <div class="st stars" style="color:${tcol(it.tier)}">${stars(it.tier)}</div></div>
+    <div class="info">
+      <div class="nm">${it.name} <small>Lv${it.lvl}</small></div>
+      <div class="cr">${it.crop}</div>
+      <div class="ot">${it.out}</div>
+      <div class="more">${it.id===sel?'收起 ▴':'点开管理 ▾'}</div>
+    </div>
+  </div>`;
+}
+function detailHTML(it){
+  const st = RT[it.id];
+  return `<div class="detail">
+    <div class="dh"><img src="${ICON(it.icon)}">
+      <div><div class="nm">${it.name} <span class="stars" style="color:${tcol(it.tier)}">${stars(it.tier)}</span></div>
+        <div class="sub">${TIERTXT[it.tier]}阶 · 共 ${it.count} ${it.id==='field'||it.id==='paddy'?'亩':'处'} · Lv${it.lvl}</div></div>
+      <div class="x" onclick="event.stopPropagation();sel=null;renderFarm()">✕</div></div>
+    <div class="obox">${it.per}<br>当前月产 <b id="o_${it.id}">${it.out}</b></div>
+    <div class="row"><div class="lab">派工</div>
+      <div class="stepper"><button onclick="stepWork('${it.id}',-1)">−</button><b id="w_${it.id}">${st.work}</b><button onclick="stepWork('${it.id}',1)">＋</button></div></div>
+    <div class="muted" style="font-size:12px;margin:-4px 0 4px">占用长工 <b id="wt_${it.id}">${st.work}</b> / 上限 ${it.cap}(空闲 ${HUD.freeW})</div>
+    <div class="lab" style="margin-top:8px">改种 / 产出</div>
+    <div class="cropwrap">${it.crops.map(c=>`<div class="chip ${c===st.crop?'on':''}" onclick="setCrop('${it.id}','${c}',this)">${c}</div>`).join('')}</div>
+    <button class="btn gold" style="width:100%;margin-top:13px" onclick="addTool(this)">🔧 添置农具(+1 田产/工)</button>
+  </div>`;
+}
+
+function renderFarm(){
+  let html='';
+  GROUPS.forEach(g=>{
+    html += `<div class="ghead">${g.name}</div><div class="shelf">${g.items.map(cardHTML).join('')}</div>`;
+    const s = g.items.find(i=>i.id===sel); if(s) html += detailHTML(s);
+  });
+  document.getElementById('screen').innerHTML = html;
+}
+function pick(id){ sel = (sel===id? null : id); renderFarm();
+  setTimeout(()=>{const e=document.querySelector('.detail');if(e)e.scrollIntoView({behavior:'smooth',block:'nearest'});},60); }
+function stepWork(id,d){const st=RT[id],it=ALL.find(i=>i.id===id);st.work=Math.max(0,Math.min(it.cap,st.work+d));
+  document.getElementById('w_'+id).textContent=st.work;document.getElementById('wt_'+id).textContent=st.work;
+  floatAt(document.getElementById('w_'+id),d>0?'派工 ＋1':'撤工 −1');}
+function setCrop(id,c,el){RT[id].crop=c;[...el.parentNode.children].forEach(x=>x.classList.remove('on'));el.classList.add('on');floatAt(el,'改种「'+c+'」');}
+function addTool(el){floatAt(el,'+1 田产/工 ✓');}
+
+function renderHome(){
+  document.getElementById('screen').innerHTML = `
+    <div class="hero" style="background-image:url('${MANOR(3)}')"><div class="hv"></div>
+      <div class="lv">宅邸 Lv3 · 庄园府邸</div>
+      <div class="ht"><b>李宅</b><span>人手上限 30 · 库容 1500 石 · 门第 +18</span></div></div>
+    <div class="ghead">李氏家族 · 图鉴</div>
+    <div class="fgrid">${FAMILY.map(f=>`<div class="pcard">
+        <div class="pa"><img src="${ICON(f.icon)}"></div>
+        <div class="pb"><div class="r">${f.role}</div><div class="n">${f.name}<span class="muted" style="font-size:11px"> ${f.age}岁</span></div><div class="t">${f.tag}</div></div>
+      </div>`).join('')}</div>`;
+}
+
+function go(k){document.getElementById('tabs').innerHTML=tabbarHTML(k);bindTabs();
+  if(k==='home')renderHome();else if(k==='farm')renderFarm();
+  else document.getElementById('screen').innerHTML=stubHTML({town:'市集 · 场镇',city:'城镇 · 州府',set:'设置'}[k]||k,{town:'🏪',city:'🏯',set:'⚙'}[k]||'·','本套用同样的「图鉴卡 + 就地展开」呈现。');}
+function bindTabs(){document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>go(t.dataset.tab));}
+document.getElementById('tabs').innerHTML=tabbarHTML('farm');bindTabs();renderFarm();
+</script>
+</body></html>

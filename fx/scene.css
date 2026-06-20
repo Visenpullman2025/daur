@@ -1,0 +1,114 @@
+/* fx/scene.css — 活的院落场景带(古纸工笔暖色)
+   只新增 #fx-scene 及其子元素;不碰任何已有类名。
+   主题安全:底色/边框全用 :root 主题变量(--paper2/--card/--line/--gold/--ink2),
+   暗夜/清雅切换自动跟随。 */
+
+#fx-scene{
+  position:relative;
+  height:138px;
+  flex:0 0 auto;               /* #main 是 column flex;子项默认 flex-shrink:1 会把纯绝对定位的本带压成 0/2px,这里钉死高度 */
+  margin:0 0 8px;
+  border-radius:12px;
+  overflow:hidden;
+  border:1px solid var(--line, #cdb88c);
+  /* 古纸暖底 + 远处院墙天光的横向晕染 */
+  background:
+    radial-gradient(120% 70% at 50% -10%, rgba(255,244,214,.55), transparent 60%),
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--paper2,#ddcba6) 70%, #e9dcc0) 0%,
+      var(--card2, #efe4cb) 52%,
+      color-mix(in srgb, var(--paper2,#ddcba6) 88%, #cbb285) 100%);
+  box-shadow: var(--shadow, 0 2px 8px rgba(60,40,20,.18)), inset 0 1px 0 rgba(255,250,235,.35);
+  -webkit-user-select:none; user-select:none;
+  contain:layout paint;        /* 限制重排/重绘范围,挂机也不拖累主帧 */
+}
+
+/* 地面:院落夯土地坪 + 一道淡淡的院墙基线 */
+#fx-scene .fx-ground{
+  position:absolute; left:0; right:0; bottom:0; height:42%;
+  background:linear-gradient(180deg,
+    rgba(170,140,96,.0) 0%,
+    rgba(150,120,78,.16) 38%,
+    rgba(120,92,55,.26) 100%);
+  pointer-events:none;
+}
+#fx-scene .fx-wall{
+  position:absolute; left:0; right:0; top:30%; height:2px;
+  background:linear-gradient(90deg, transparent, rgba(120,92,55,.30) 18%, rgba(120,92,55,.30) 82%, transparent);
+  pointer-events:none;
+}
+
+/* 一个个小人/牲口:绝对定位,transform 缓动「踱步」 */
+#fx-scene .fx-fig{
+  position:absolute;
+  bottom:8px;                  /* 站在地坪上 */
+  width:var(--sz,30px); height:var(--sz,30px);
+  will-change:transform;
+  pointer-events:none;
+  transform:translateX(0);
+  /* 两段动画:横向踱步(stroll) + 自身轻微浮动(bob),叠加更像活物 */
+  animation:
+    fxStroll var(--dur,9s) ease-in-out var(--delay,0s) infinite alternate,
+    fxBob    var(--bdur,2.6s) ease-in-out var(--bdelay,0s) infinite;
+}
+#fx-scene .fx-fig img,
+#fx-scene .fx-fig .fx-emoji{
+  display:block; width:100%; height:100%;
+  object-fit:contain;
+  /* 工笔暖色:极淡的暖色描边 + 落地软影,贴合古纸 */
+  filter:drop-shadow(0 2px 1.5px rgba(70,45,20,.34));
+}
+#fx-scene .fx-fig .fx-emoji{
+  font-size:calc(var(--sz,30px) * .82);
+  line-height:var(--sz,30px);
+  text-align:center;
+}
+/* 朝向:一半小人镜像,看着像两边来回走的人群 */
+#fx-scene .fx-fig.flip img,
+#fx-scene .fx-fig.flip .fx-emoji{ transform:scaleX(-1); }
+
+/* 牲口压低、靠地坪,体型略小,与人区分 */
+#fx-scene .fx-fig.fx-beast{ bottom:5px; }
+
+/* 角标:阖家几口 · 长工 · 家仆 · 产业(沿用 scenelabel 的味道但独立类) */
+#fx-scene .fx-label{
+  position:absolute; left:8px; bottom:6px; z-index:5;
+  font-size:10px; line-height:1.4;
+  color:var(--ink2,#7a6647);
+  background:rgba(247,240,223,.72);
+  border:1px solid var(--line,#cdb88c);
+  padding:1px 8px; border-radius:7px;
+  pointer-events:none;
+  max-width:72%;
+}
+body.theme-night #fx-scene .fx-label{ background:rgba(40,33,25,.66); }
+body.theme-qing  #fx-scene .fx-label{ background:rgba(247,250,253,.74); }
+
+/* 标题小印 */
+#fx-scene .fx-seal{
+  position:absolute; right:8px; top:6px; z-index:5;
+  font-size:10px; color:#fff; font-weight:700;
+  background:var(--accent,#8c3a2c);
+  padding:1px 8px; border-radius:7px;
+  box-shadow:0 1px 3px rgba(60,30,10,.3);
+  pointer-events:none;
+}
+
+@keyframes fxStroll{
+  /* from/to 由各自 --x0 / --x1 决定横向位移幅度;不同人不同幅度+方向 */
+  from{ transform:translateX(var(--x0,0px)); }
+  to  { transform:translateX(var(--x1,30px)); }
+}
+@keyframes fxBob{
+  0%,100%{ margin-bottom:0; }
+  50%    { margin-bottom:var(--bob,4px); }
+}
+
+/* 性能/无障碍:用户要求减少动效时静止 */
+@media (prefers-reduced-motion: reduce){
+  #fx-scene .fx-fig{ animation:none !important; }
+}
+
+/* PC 版(layout.css 给 body 加 layout-pc):场景带略高、小人略大,横向空间更足 */
+body.layout-pc #fx-scene{ height:150px; }
+body.layout-pc #fx-scene .fx-fig{ --sz:34px; }
